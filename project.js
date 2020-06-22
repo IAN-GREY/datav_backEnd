@@ -1,19 +1,51 @@
 const express = require("express");
 const router = express.Router();
-// var mdb=require("./mongo.js");
-// console.log('1111',mdb)
+var uuid = require('node-uuid');
+
 router.use((req, res, next) => {
-    console.log(`路由执行成功啦~~~`, Date.now());
+   
     next()
   })
-
-router.post("/add",function (req,res) {
+router.get("/get",function (req,res) {
+    
     const param={
+        account:req.body.account,
+    }
+    
+    // mdb.collection('project').find(param, function (err, result)
+    mdb.collection('project').find(param, function (err, result)
+        {
+            if (err) throw err;
+            if (result)
+            {  
+                res.json({
+                    ret_code: 1,
+                    ret_msg: '查询成功'
+                });
+            }
+        });
+});
+router.post("/add",function (req,res) {
+    const id=uuid.v1()
+    let  param={
         account:req.body.account,
         config_data:req.body.config_data,
         title:req.body.title,
         name:req.body.name,
+        background:req.body.background,
+        status:1,
+        pId:id
     }
+    var date = new Date();
+    var year = date.getFullYear();
+    var month = date.getMonth()+1;
+    var day = date.getDate();
+    var hour = date.getHours();
+    var minute = date.getMinutes();
+    var second = date.getSeconds();
+    param['publish_date']=year+'年'+month+'月'+day+'日 '+hour+':'+minute+':'+second
+    
+
     mdb.collection('project').insertOne(param, function (err, result)
         {
             if (err) throw err;
@@ -44,18 +76,21 @@ router.post("/delete",function (req,res) {
 });
 router.post("/update",function (req,res) {
     let param={
-        pId:req.body.pId,
+        $set:{
+
+        }
     }
     if(req.body.config_data){
-        param.config_data=req.body.config_data
+        param.$set['config_data']=req.body.config_data
     }
     if(req.body.title){
-        param.title=req.body.title
+        param.$set['title']=req.body.title
     }
     if(req.body.name){
-        param.name=req.body.name
+        param.$set['name']=req.body.name
     }
-    mdb.collection('project').deleteOne(param, function (err, result)
+   
+    mdb.collection('project').updateOne({"pId":req.body.pId},param, function (err, result)
         {
             if (err) throw err;
             if (result)
