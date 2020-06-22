@@ -7,14 +7,14 @@ router.use((req, res, next) => {
     next()
   })
 router.get("/get",function (req,res) {
-    
+    console.log(req)
     const param={
         account:req.body.account,
     }
     
-    // mdb.collection('project').find(param, function (err, result)
     mdb.collection('project').find(param, function (err, result)
         {
+            console.log(result.operation.cmd.query)
             if (err) throw err;
             if (result)
             {  
