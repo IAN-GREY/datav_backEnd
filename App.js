@@ -3,7 +3,6 @@
              * 实现单点登录
              */
             var express = require('express');
-            // var app = express();
             const app = new express();
             var bodyparser = require('body-parser');
             var crypto = require('crypto');
@@ -14,7 +13,12 @@
             var multipartMiddleware = multipart();
             app.use(bodyparser.json());
             var mdb;
- 
+
+            var jwtauth = require('./jwtauth.js')
+            var moment = require('moment');
+            var jwt = require('jwt-simple');
+            app.set('jwtTokenSecret', 'YOUR_SCRET_STRING');
+
             /**
              * session,cookie中间件。
              */
@@ -66,83 +70,6 @@
             });
             
             /**
-             * 注册
-             */
-            app.get('/register', function (req, res)
-            {
-                res.sendFile(path.join(__dirname, './public/templates', 'register.html'));
-            });
- 
-            app.post('/register', multipartMiddleware, function (req, res)
-                {
-                    var username = req.body.account;
-                    var password = req.body.password;
-                    mdb.collection('user').findOne({username: username}, function (err, result)
-                    {
-                        if (err) throw err;
-                        if (result)
-                        {
-                                
-                            res.json({
-                                ret_code: 1,
-                                ret_msg: '用户名已存在请更换用户名！'
-                            });
-                        }
-                        else
-                        {
-                            mdb.collection('user').insertOne({username: username, password: password}, function (err, result)
-                            {
-                                if (err) throw err;
-                                if (result)
-                                {
-                                        
-                                    res.json({
-                                        ret_code: 2,
-                                        ret_msg: '注册成功'
-                                    });
-                                }
-                            });
- 
-                        }
-                    });
-                }
-            );
- 
-            /**
-             * 登录
-             */
-            app.get('/login', function (req, res)
-            {
-                res.sendFile(path.join(__dirname, './public/templates', 'login.html'));
-            });
-            app.post('/login', function (req, res)
-            {
-                var username = req.body.account;
-                var password = req.body.password;
-                // console.log(req.body)
-                // console.log(username)
-                // console.log(password)
-                mdb.collection("user").findOne({username: username, password: password}, function (err, result)
-                {
-                    if (err) throw err;
-                    if (result)
-                    {
-                        var ticket = genToken();
-                        mdb.collection('token').insertOne({ticket: ticket,username:username}, function (err, Lresult) {});
-                        req.session.ticket = ticket;
-                        res.cookie.ticket = ticket;
-                        // res.redirect('/index');
-                    } else
-                    {
-                        res.json({
-                            ret_code: 1,
-                            ret_msg: '用户名或密码错误！'
-                        });
-                    }
-                });
-            });
- 
-            /**
              * 认证中心
              */
             app.get('/authentication', function (req, res)
@@ -161,24 +88,7 @@
                 }
             });
  
-            /**
-             * 首页
-             */
-            app.get('/index', function (req, res)
-            {
-                if (req.session.ticket)
-                {
-                    
-                    res.json({
-                        ret_code: 1,
-                        ret_msg: '用户名已存在请更换用户名！'
-                    });
-                }
-                else
-                {
-                    res.redirect('/login');
-                }
-            });
+           
  
             /**
              * 注销
@@ -191,48 +101,65 @@
                 {
                     if (err) throw err;
                     res.redirect('/login');
- 
-                });
-                
-            });
-            app.post('/cancellation', function (req, res)
-            {
-                var token = req.session.ticket;
-                delete req.session.ticket;
-                mdb.collection('token').removeOne({ticket: token}, function (ree, result)
-                {
-                    if (err) throw err;
-                    res.redirect('/login');
- 
                 });
  
             });
-            // app.use('/project',require('./project.js'));
 
-            // app.post('/addProject', function (req, res)
-            // {
-            //     var username = req.body.account;
-            //     var password = req.body.password;
-            //     mdb.collection('project').insertOne({a: 111, b: 222}, function (err, result)
-            //                 {
-            //                     if (err) throw err;
-            //                     if (result)
-            //                     {
-                                        
-            //                         res.json({
-            //                             ret_code: 2,
-            //                             ret_msg: '注册成功'
-            //                         });
-            //                     }
-            //                 });
- 
-            // });
+            app.use(function (req, res, next){
+                if (req.url != '/user/login' && req.url != '/api/imgCode' && req.url != '/api/lone' && req.url != '/user/register' ){
+                    var token = (req.body && req.body.access_token) || (req.query && req.query.access_token) || req.headers['x-access-token']
+                    console.log(req.url)
+                    console.log(req.headers['x-access-token'])
+                    if (token) {
+                        try {
+                            var decoded = jwt.decode(token, app.get('jwtTokenSecret'));
+                            console.log(decoded)
+                            if( decoded.exp <= Date.now()) {
+                                // res.end('Access token has expired', 400)
+                                res.json({
+                                    code: "400",
+                                    data: "Token was out of date",
+                                    msg: "invalid_token",
+                                });
+                            }
+                            else if(decoded.account){
+                          
+                                mdb.collection('user').findOne({ account:decoded.account}, function(err, user) {
+                                    // req.user_id = user._id;
+                                    
+                                    next()
+                                  })
+                            }
+                              
+                        } catch (err) {
+                            // return next()
+                            // res.end('Access err', 400)
+                            res.json({
+                                code: "400",
+                                data: "Token was not recognised",
+                                msg: "invalid_token",
+                            });
+                        }
+                    } else {
+                        // res.end('  no Access ', 400)
+                        res.json({
+                            code: "400",
+                            data: "Token was required",
+                            msg: "invalid_token",
+                        });
+                    }
+                }
+                else {
+                    next();
+                }
 
-          
-            //引入route模块
+            });
             const project  = require("./project");
-            //加载admin模块
+            const collection  = require("./collection");
+            const user  = require("./user");
+            app.use("/user",user);
             app.use("/project",project);
+            app.use("/collection",collection);
 
             var server = app.listen(8881, function ()
             {
@@ -240,3 +167,5 @@
                 var port = server.address().port;
                 console.log("访问地址为 http://%s:%s", host, port);
             });
+
+            global.app=app

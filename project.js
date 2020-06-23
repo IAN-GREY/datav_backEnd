@@ -3,27 +3,78 @@ const router = express.Router();
 var uuid = require('node-uuid');
 
 router.use((req, res, next) => {
-   
     next()
-  })
-router.get("/get",function (req,res) {
-    console.log(req)
+})
+router.get("/checkPassword",function (req,res) {
     const param={
-        account:req.body.account,
+        pId:req.query.pId,
+        password:req.query.password,
     }
-    
-    mdb.collection('project').find(param, function (err, result)
-        {
-            console.log(result.operation.cmd.query)
-            if (err) throw err;
-            if (result)
-            {  
+    mdb.collection('project').find(param).toArray(function(err, result) {
+        if (err) throw err;
+        if (result)
+        {  
+            if(result[0].password == req.query.password){
                 res.json({
+                    ret_code: 1,
+                    ret_msg: '密码正确'
+                });
+            }else{
+                res.json({
+                    ret_code: 0,
+                    ret_msg: '密码错误'
+                });
+            }
+        }
+    });
+});
+
+router.get("/getAll",function (req,res) {
+    let param={
+        account:req.query.account
+    }
+    mdb.collection('project').find(param).toArray(function(err, result) {
+        if (err) throw err;
+        if (result)
+        {  
+          
+            res.json({
+                data:result,
+                ret_code: 1,
+                ret_msg: '查询成功'
+            });
+        }
+    });
+});
+router.get("/getOne",function (req,res) {
+    let param={
+        pId:req.query.pId
+    }
+    mdb.collection('project').findOne(param,function(err, result) {
+        if (err) throw err;
+        if (result)
+        {  
+            console.log(result)
+            if(result.status == 0){
+                res.json({
+                    ret_code: 0,
+                    ret_msg: '项目未发布'
+                });
+            }else if(result.status == 1){
+                res.json({
+                    data:result,
                     ret_code: 1,
                     ret_msg: '查询成功'
                 });
+            }else if(result.status == 2){
+                res.json({
+                    ret_code: 2,
+                    ret_msg: '需要密码'
+                });
             }
-        });
+            
+        }
+    });
 });
 router.post("/add",function (req,res) {
     const id=uuid.v1()
@@ -34,6 +85,7 @@ router.post("/add",function (req,res) {
         name:req.body.name,
         background:req.body.background,
         status:1,
+        password:'',
         pId:id
     }
     var date = new Date();
@@ -82,6 +134,9 @@ router.post("/update",function (req,res) {
     }
     if(req.body.config_data){
         param.$set['config_data']=req.body.config_data
+    }
+    if(req.body.password){
+        param.$set['password']=req.body.password
     }
     if(req.body.title){
         param.$set['title']=req.body.title
