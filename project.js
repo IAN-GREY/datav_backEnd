@@ -54,7 +54,6 @@ router.get("/getOne",function (req,res) {
         if (err) throw err;
         if (result)
         {  
-            console.log(result)
             if(result.status == 0){
                 res.json({
                     ret_code: 0,
@@ -84,7 +83,7 @@ router.post("/add",function (req,res) {
         title:req.body.title,
         name:req.body.name,
         background:req.body.background,
-        status:1,
+        status:0,
         password:'',
         pId:id
     }

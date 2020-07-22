@@ -6,35 +6,7 @@ var jwt = require('jwt-simple');
 router.use((req, res, next) => {
     next()
 })
-router.get("/getOne",function (req,res) {
-    let param={
-        pId:req.query.pId
-    }
-    mdb.collection('project').findOne(param,function(err, result) {
-        if (err) throw err;
-        if (result)
-        {  
-            if(result.status == 0){
-                res.json({
-                    ret_code: 0,
-                    ret_msg: '项目未发布'
-                });
-            }else if(result.status == 1){
-                res.json({
-                    data:result,
-                    ret_code: 1,
-                    ret_msg: '查询成功'
-                });
-            }else if(result.status == 2){
-                res.json({
-                    ret_code: 2,
-                    ret_msg: '需要密码'
-                });
-            }
-            
-        }
-    });
-});
+
 router.post("/register",function (req,res) {
     let  param={
         account:req.body.account,
@@ -79,29 +51,6 @@ router.post("/register",function (req,res) {
         }
     });
 });
-router.get("/getOne",function (req,res) {
-    const param={
-        account:req.query.account,
-    }
-    mdb.collection('user').findOne(param, function (err, result)
-        {
-            if (err) throw err;
-            if (result)
-            {  
-        
-                res.json({
-                    ret_code: -1,
-                    ret_msg: '账号已存在'
-                });
-                
-            }else{
-                res.json({
-                    ret_code: 1,
-                    ret_msg: '账户名可用'
-                });
-            }
-        });
-});
 router.post("/login",function (req,res) {
         var account = req.body.account;
         var password = req.body.password;
@@ -119,7 +68,7 @@ router.post("/login",function (req,res) {
                 res.json({
                         token: token,
                         expires: expires,
-                        user: result.username,
+                        username: result.username,
                         account:result.account,
                     })
                 
