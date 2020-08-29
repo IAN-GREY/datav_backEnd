@@ -20,12 +20,12 @@ app.set('jwtTokenSecret', 'YOUR_SCRET_STRING');
  */
 app.use(cookie());
 app.use(session({
-    secret: 'secret', // 对session id 相关的cookie 进行签名
-    resave: true,
-    saveUninitialized: false, // 是否保存未初始化的会话
-    cookie: {
-        maxAge: 1000 * 60 * 60 *2 // 设置 session 的有效时间，单位毫秒
-    }
+  secret: 'secret', // 对session id 相关的cookie 进行签名
+  resave: true,
+  saveUninitialized: false, // 是否保存未初始化的会话
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 2 // 设置 session 的有效时间，单位毫秒
+  }
 }));
 //app.set('tem', __dirname); //设置模板的目录
 //app.set('view engine', 'html'); // 设置解析模板文件类型：这里为html文件
@@ -46,42 +46,37 @@ var url = "mongodb://localhost:27017/runoob";
  * 生成token
  * @return {string} return 返回值
  * */
-function genToken()
-{
-    var buf = crypto.randomBytes(12);
-    var token = buf.toString('hex');
-    return token;
+function genToken () {
+  var buf = crypto.randomBytes(12);
+  var token = buf.toString('hex');
+  return token;
 }
 
 
 /**
  * 请求数据库
  */
-MongoClient.connect(url, function (err, db)
-{
-    if (err) throw err;
-    var dbo = db.db("local");
-    mdb = dbo;
-    global.mdb=mdb
+MongoClient.connect(url, function (err, db) {
+  if (err) throw err;
+  var dbo = db.db("local");
+  mdb = dbo;
+  global.mdb = mdb
 });
 
 /**
  * 认证中心
  */
-app.get('/authentication', function (req, res)
-{
-    if (req.session.ticket)
-    {
-        console.log("进入认证");
-        var url = req.query.callback;
-        var token = req.session.ticket;
-        url = console.log(url + "?token=" + token);
-        res.redirect(url);
-    }
-    else
-    {
-        res.redirect('/login');
-    }
+app.get('/authentication', function (req, res) {
+  if (req.session.ticket) {
+    console.log("进入认证");
+    var url = req.query.callback;
+    var token = req.session.ticket;
+    url = console.log(url + "?token=" + token);
+    res.redirect(url);
+  }
+  else {
+    res.redirect('/login');
+  }
 });
 
 
@@ -89,15 +84,13 @@ app.get('/authentication', function (req, res)
 /**
  * 注销
  */
-app.post('/cancellation', function (req, res)
-{
-    var token = req.session.ticket;
-    delete req.session.ticket;
-    mdb.collection('token').removeOne({ticket: token}, function (ree, result)
-    {
-        if (err) throw err;
-        res.redirect('/login');
-    });
+app.post('/cancellation', function (req, res) {
+  var token = req.session.ticket;
+  delete req.session.ticket;
+  mdb.collection('token').removeOne({ ticket: token }, function (ree, result) {
+    if (err) throw err;
+    res.redirect('/login');
+  });
 
 });
 //设置跨域访问
@@ -130,14 +123,14 @@ app.all('*', function (req, res, next) {
 //                     });
 //                 }
 //                 else if(decoded.account){
-                
+
 //                     mdb.collection('user').findOne({ account:decoded.account}, function(err, user) {
 //                         // req.user_id = user._id;
-                        
+
 //                         next()
 //                         })
 //                 }
-                    
+
 //             } catch (err) {
 //                 // return next()
 //                 // res.end('Access err', 400)
@@ -161,20 +154,21 @@ app.all('*', function (req, res, next) {
 //     }
 
 // });
-const project  = require("./project");
-const collection  = require("./collection");
-const user  = require("./user");
-const file  = require("./file");
-app.use("/file",file);
-app.use("/user",user);
-app.use("/project",project);
-app.use("/collection",collection);
+const project = require("./project");
+const collection = require("./collection");
+const user = require("./user");
+const file = require("./file");
+app.use("/file", file);
+app.use("/user", user);
+app.use("/project", project);
+app.use("/collection", collection);
 
-var server = app.listen(8881, function ()
-{
-    var host = server.address().address;
-    var port = server.address().port;
-    console.log("访问地址为 http://%s:%s", host, port);
+app.use(express.static(path.join(__dirname, 'uploads')))
+
+var server = app.listen(8881, function () {
+  var host = server.address().address;
+  var port = server.address().port;
+  console.log("访问地址为 http://%s:%s", host, port);
 });
 
-global.app=app
+global.app = app
