@@ -40,9 +40,16 @@ router.post("/register",function (req,res) {
                 if (err) throw err;
                 if (result)
                 {
-                        
+                    var expires = moment().add(7,'days').valueOf();
+                    var token = jwt.encode({
+                        account: result.account,
+                        exp: expires,
+                    }, app.get('jwtTokenSecret'));
+               
                     res.json({
                         ret_code: 2,
+                        token: token,
+                        expires: expires,
                         ret_msg: '注册成功'
                     });
                 }
