@@ -95,12 +95,12 @@ app.post('/cancellation', function (req, res) {
 });
 //设置跨域访问
 app.all('*', function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With,x-access-token");
-    res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
-    res.header("X-Powered-By", ' 3.2.1')
-    res.header("Content-Type", "application/json;charset=utf-8");
-    next();
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With,x-access-token");
+  res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
+  res.header("X-Powered-By", ' 3.2.1')
+  // res.header("Content-Type", "application/json;charset=utf-8");
+  next();
 });
 /**
  * token登陆检查
@@ -164,6 +164,9 @@ app.use("/project", project);
 app.use("/collection", collection);
 
 app.use(express.static(path.join(__dirname, 'uploads')))
+// app.use('static', __dirname + '/uploads');
+
+
 
 var server = app.listen(8881, function () {
   var host = server.address().address;
