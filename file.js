@@ -7,10 +7,10 @@ var fs = require('fs')
 var zlib = require('zlib')
 var tar = require('tar')
 var fstream = require('fstream')
+const compressing = require('compressing');
 router.use((req, res, next) => {
   next()
 })
-
 router.post("/upload", function (req, res) {
   var storage = multer.diskStorage({
     destination: path.join(__dirname, '/uploads')
@@ -64,7 +64,6 @@ router.post("/upload", function (req, res) {
     }
   });
 });
-
 function makeNewDir (dir_path, dir) {
   if (!dir_path) {
     return
@@ -95,25 +94,17 @@ router.post("/uploads", function (req, res) {
   var uploads = multer({
     storage: storage
   }).any();
-
   uploads(req, res, function (err) {
     let dir = JSON.parse(req.body.dir)
-
     if (!fs.existsSync(path.join(__dirname, '/uploads/' + req.body.account))) {
-
-
       fs.mkdirSync(path.join(__dirname, '/uploads/' + req.body.account))
     }
-
     dir.forEach(dirPath => {
       let newdirPath = dirPath.split('/')
       newdirPath.pop()
       makeNewDir(req.body.account, newdirPath)
     });
-
-    console.log('文件路径创建成功')
     if (err) {
-      console.log('error!!!!', err);
       return res.end('Error');
     } else {
       let account = req.body.account;
@@ -129,7 +120,6 @@ router.post("/uploads", function (req, res) {
           if (err) { return res.send('上传失败') }
           fs.writeFile(path.join(__dirname, '/uploads/' + account + '/' + dir[index]), data, (err) => {
             if (err) { return res.send('写入失败') }
-
             // res.send({ err: 0, msg: '上传ok，新增', path: dir[index] })
             if (index == req.files.length) {
               res.send({ err: 0, msg: '上传ok，新增', path: dir[index] })
@@ -157,7 +147,11 @@ router.get("/get", function (req, res) {
         return item.indexOf(req.query.name) !== -1
       })
     }
-    let pagedFiles = files.slice(pageNum > 1 ? (pageNum - 1) * pageSize : 0, pageNum > 1 ? pageNum * pageSize - 1 : pageSize - 1)
+    let startIndex = pageNum > 1 ? (pageNum - 1) * pageSize : 0
+    let endIndex = pageNum > 1 ? pageNum * pageSize - 1 : pageSize - 1
+
+    let pagedFiles = files.slice(startIndex, endIndex)
+
     pagedFiles.forEach(function (file) {
       var states = fs.statSync(filepath + '/' + file);
       // if(states.isDirectory())
@@ -166,7 +160,6 @@ router.get("/get", function (req, res) {
       // }
       // else
       {
-        //创建一个对象保存信息
         var obj = {
           size: '',
           name: '',
@@ -179,7 +172,6 @@ router.get("/get", function (req, res) {
         fileData.push(obj)
         totalSize += states.size
       }
-
     })
     res.json({
       data: {
@@ -190,7 +182,6 @@ router.get("/get", function (req, res) {
         pages: Math.ceil(files.length / pageSize),
         total: files.length,
       },
-
       ret_code: 1,
       ret_msg: 'success'
     });
@@ -201,8 +192,6 @@ router.get("/get", function (req, res) {
       ret_msg: '文件不存在'
     });
   }
-
-
 });
 router.get("/getAll", function (req, res) {
   const param = {
@@ -237,25 +226,29 @@ router.get("fileServer/:account/:path", function (req, res) {
 
 router.post("/delete", function (req, res) {
   const account = req.body.account;
-  const filepath = path.join(__dirname, '/uploads/' + account + '/' + req.body.path)
+  const filepath = path.join(__dirname, '/uploads/' + account + '/' + req.body.filepath)
+  const nameList = req.body.name.split(',')
   try {
-    fs.unlink(filepath, function (err) {
-      if (err) {
-        throw err;
+    nameList.forEach(element => {
+      if (fs.statSync(filepath + '/' + element).isDirectory()) {
+        deleteFolder(filepath + '/' + element)
+
+      } else {
+        fs.unlinkSync(filepath + '/' + element)
       }
-      res.json({
-        ret_code: 1,
-        ret_msg: '删除成功'
-      });
-    })
+
+    });
+    res.json({
+      ret_code: 1,
+      ret_msg: '删除成功'
+    });
+
   } catch (error) {
     res.json({
       ret_code: -1,
       ret_msg: '删除失败'
     });
   }
-
-
 });
 router.post("/rename", function (req, res) {
   const account = req.body.account;
@@ -286,12 +279,23 @@ router.post("/move", function (req, res) {
   const sourceFile = path.join(__dirname, '/uploads/' + account + '/' + req.body.oldPath)
   const destPath = path.join(__dirname, '/uploads/' + account + '/' + req.body.newPath)
   try {
-    // var readStream = fs.createReadStream(sourceFile);
-    // var writeStream = fs.createWriteStream(destPath);
-    // readStream.pipe(writeStream);
-    createDocs(sourceFile, destPath, function () {
-      deleteFolder(sourceFile);
-    })
+    let stats = fs.statSync(sourceFile);
+    fs.exists(sourceFile, function (exist) {
+      if (exist) {
+        if (stats.isFile()) {// 判断是文件还是目录
+          fs.writeFileSync(destPath, fs.readFileSync(sourceFile));
+          fs.unlinkSync(sourceFile)
+        } else if (stats.isDirectory()) {
+          copyDir(sourceFile, destPath)// 是目录，递归复制
+          deleteFolder(sourceFile);
+        }
+      } else {
+        res.json({
+          ret_code: 3,
+          ret_msg: '文件不存在'
+        });
+      }
+    });
     res.json({
       ret_code: 1,
       ret_msg: '移动成功'
@@ -309,10 +313,7 @@ router.get("/download", function (req, res) {
   let fileName = req.query.name;
   let account = req.query.account;
   let fileDir = path.join(__dirname, '/uploads/' + account + '/' + req.query.path + '/' + fileName)
-  let fileDir2 = path.join(__dirname, '/uploads/' + account + '/' + req.query.path + '/' + '444444.docx')
-  console.log('fileDir', fileDir)
   stats = fs.statSync(fileDir);
-
   fs.exists(fileDir, function (exist) {
     if (exist) {
       res.set({
@@ -320,10 +321,7 @@ router.get("/download", function (req, res) {
         "Content-Disposition": "attachment;filename=" + encodeURI(fileName),
         'Content-Length': stats.size
       });
-
       let fReadStream = fs.createReadStream(fileDir);
-      // fReadStream += fs.createReadStream(fileDir2);
-
       fReadStream.pipe(res);
     } else {
       res.set("Content-type", "text/html");
@@ -336,28 +334,65 @@ router.get("/download", function (req, res) {
 });
 router.get("/batchDownload", function (req, res) {
   let account = req.query.account;
-  let path = req.query.path;
+  let filePath = req.query.path;
   let filesList = req.query.name.split(',')
+  const destPath = path.join(__dirname, '/uploads/' + account + '_temp')
+  mkdirsSync(destPath)
+  for (let index = 0; index < filesList.length; index++) {
+    const element = filesList[index];
+    const sourceFile = path.join(__dirname, '/uploads/' + account + '/' + filePath + '/' + element)
+    let stats = fs.statSync(sourceFile);
+    fs.exists(sourceFile, function (exist) {
+      if (exist) {
+        if (stats.isFile()) {// 判断是文件还是目录
+          fs.writeFileSync(destPath + '/' + filesList[index], fs.readFileSync(sourceFile));
+        } else if (stats.isDirectory()) {
+          copyDir(sourceFile, destPath)// 是目录，递归复制
+        }
 
-
-  newFolder = '????????????'
-  filesList.forEach(element => {
-    const sourceFile = path.join(__dirname, '/uploads/' + account + '/' + req.body.oldPath)
-    const destPath = path.join(__dirname, '/uploads/' + account + '/' + req.body.newPath)
-
-    createDocs(sourceFile, destPath, function () {
-
+      } else {
+        res.json({
+          ret_code: 3,
+          ret_msg: '文件不存在'
+        });
+      }
+    });
+  }
+  compressing.zip.compressDir(destPath, destPath + '.zip')
+    .then(() => {
+      let stats = fs.statSync(destPath + '.zip');
+      res.set({
+        "Content-type": "application/octet-stream",
+        "Content-Disposition": "attachment;filename=" + encodeURI(filesList.length > 0 ? 'file.zip' : filesList[0] + 'zip'),
+        'Content-Length': stats.size
+      });
+      let fReadStream = fs.createReadStream(destPath + '.zip');
+      fReadStream.pipe(res);
+      deleteFolder(destPath);
+      fs.unlinkSync(destPath + '.zip');
     })
+    .catch(err => {
+      console.error(err);
+      deleteFolder(destPath);
+      fs.unlinkSync(destPath + '.zip');
+    });
+
+
+
+
+
+
+
+});
+router.post("/create", function (req, res) {
+  let account = req.body.account;
+  let filePath = req.body.filePath;
+  const destPath = path.join(__dirname, '/uploads/' + account + '/' + filePath)
+  mkdirsSync(destPath)
+  res.json({
+    ret_code: 1,
+    ret_msg: '创建成功'
   });
-
-  let fileDir = path.join(path.join(__dirname, req.query.account + '_temp'))
-  let stats = fs.statSync(fileDir);
-  var output = fs.createWriteStream(path.join(__dirname, req.query.account + '_temp.zip'));
-  var archive = archiver('zip', {
-    zlib: { level: 99 }
-  });
-
-
 
 });
 router.post("/getdirsize", function (req, res) {
@@ -426,7 +461,6 @@ function mkdirsSync (dirname) {
     return true;
   } else {
     if (mkdirsSync(path.dirname(dirname))) {
-      console.log("mkdirsSync = " + dirname);
       fs.mkdirSync(dirname);
       return true;
     }
