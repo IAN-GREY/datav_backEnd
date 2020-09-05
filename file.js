@@ -12,72 +12,42 @@ router.use((req, res, next) => {
   next()
 })
 router.post("/upload", function (req, res) {
-  var storage = multer.diskStorage({
-    destination: path.join(__dirname, '/uploads')
-  });
-  var upload = multer({
-    storage: storage
-  }).any();
-
-  upload(req, res, function (err) {
-    if (err) {
-      return res.end('Error');
-    } else {
-      let account = req.body.account;
-      if (!account) {
-        res.json({
-          ret_code: -1,
-          ret_msg: 'account is required!'
-        });
-        return
+  const filepath = path.join(__dirname, '/uploads/' + req.body.account + '/' + req.body.path)
+  try {
+    if (fs.existsSync(filepath)) {
+      let ret_msg = '文件上传成功'
+      if (fs.existsSync(filepath + '/' + req.body.name)) {
+        ret_msg = '文件覆盖成功'
       }
-      req.files.forEach(function (item) {
-        let time = Date.now() + parseInt(Math.random() * 999) + parseInt(Math.random() * 2222);
-        //拓展名
-        let extname = item.mimetype.split('/')[1]
-        //拼接成图片名
-        let keepname = time + '.' + extname
-        fs.exists(path.join(__dirname, '/uploads/' + account + '/' + keepname), function (exists) {  //path为文件夹路径
-          var retTxt = exists ? retTxt = '文件存在' : '文件不存在';
-          if (retTxt == '文件存在') {
-            fs.writeFile(path.join(__dirname, '/uploads/' + account + '/' + keepname), item.path, (err) => {
-              if (err) { return res.send('写入失败') }
-              res.send({ err: 0, msg: '上传ok,覆盖', path: keepname })
-            });
-          } else {
-            fs.mkdir(path.join(__dirname, '/uploads/' + account), function (err) {
-              fs.readFile(item.path, (err, data) => {
-                if (err) { return res.send('上传失败') }
-                fs.writeFile(path.join(__dirname, '/uploads/' + account + '/' + keepname), data, (err) => {
-                  if (err) { return res.send('写入失败') }
-                  res.send({ err: 0, msg: '上传ok，新增', path: keepname })
-                });
-              });
-            })
-          }
-        })
-
-
-
+      fs.writeFile(filepath + '/' + req.body.name, req.file[0].path, (err) => {
+        res.json({
+          ret_code: 1,
+          ret_msg: ret_msg
+        });
       });
-      // res.end('File uploaded'); 
+    } else {
+      res.json({
+        ret_code: -1,
+        ret_msg: '文件路径错误'
+      });
     }
-  });
+  } catch (error) {
+    res.json({
+      ret_code: -1,
+      ret_msg: '文件上传失败'
+    });
+  }
 });
 function makeNewDir (dir_path, dir) {
   if (!dir_path) {
     return
   }
-
   if (fs.existsSync(path.join(__dirname, '/uploads/' + dir_path))) {
     if (dir[0]) {
       makeNewDir(dir_path + '/' + dir[0], dir.slice(1))
     }
-
-
   } else {
     fs.mkdirSync(path.join(__dirname, '/uploads/' + dir_path))
-
     if (dir[0]) {
       fs.mkdirSync(path.join(__dirname, '/uploads/' + dir_path + '/' + dir[0]))
       if (dir[1]) {
@@ -85,9 +55,8 @@ function makeNewDir (dir_path, dir) {
       }
     }
   }
-
 }
-router.post("/uploads", function (req, res) {
+router.post("/batchUpload", function (req, res) {
   var storage = multer.diskStorage({
     destination: path.join(__dirname, '/uploads')
   });
@@ -117,21 +86,31 @@ router.post("/uploads", function (req, res) {
       }
       req.files.forEach(function (item, index) {
         fs.readFile(item.path, (err, data) => {
-          if (err) { return res.send('上传失败') }
+          if (err) {
+            return res.json({
+              ret_code: -1,
+              ret_msg: '上传失败'
+            });
+          }
           fs.writeFile(path.join(__dirname, '/uploads/' + account + '/' + dir[index]), data, (err) => {
-            if (err) { return res.send('写入失败') }
-            // res.send({ err: 0, msg: '上传ok，新增', path: dir[index] })
-            if (index == req.files.length) {
-              res.send({ err: 0, msg: '上传ok，新增', path: dir[index] })
+            if (err) {
+              return res.json({
+                ret_code: -1,
+                ret_msg: '上传失败'
+              });
             }
+            if (index == req.files.length - 1) {
+              res.json({
+                ret_code: 1,
+                ret_msg: '上传成功'
+              });
+            }
+            fs.unlinkSync(item.path)
           });
         });
-
       });
-
     }
   });
-
 });
 router.get("/get", function (req, res) {
   let pageSize = req.query.pageSize ? req.query.pageSize : 10;
@@ -139,9 +118,13 @@ router.get("/get", function (req, res) {
   let queryPath = req.query.path ? '/' + req.query.path : ''
   const filepath = path.join(__dirname, '/uploads/' + req.query.account + queryPath)
   try {
-    var files = fs.readdirSync(filepath);//需要用到同步读取
+    if (fs.existsSync(path.join(__dirname, '/uploads/' + req.query.account))) {
+    } else {
+      fs.mkdirSync(path.join(__dirname, '/uploads/' + req.query.account));
+    }
     let fileData = []
     let totalSize = 0
+    var files = fs.readdirSync(filepath);
     if (req.query.name) {
       files = files.filter(item => {
         return item.indexOf(req.query.name) !== -1
@@ -149,16 +132,9 @@ router.get("/get", function (req, res) {
     }
     let startIndex = pageNum > 1 ? (pageNum - 1) * pageSize : 0
     let endIndex = pageNum > 1 ? pageNum * pageSize - 1 : pageSize - 1
-
     let pagedFiles = files.slice(startIndex, endIndex)
-
     pagedFiles.forEach(function (file) {
       var states = fs.statSync(filepath + '/' + file);
-      // if(states.isDirectory())
-      // {
-      //     this.readFile(path+‘/‘+file,filesList);
-      // }
-      // else
       {
         var obj = {
           size: '',
@@ -200,7 +176,6 @@ router.get("/getAll", function (req, res) {
   const filepath = path.join(__dirname, '/uploads/' + req.query.account)
   try {
     let tree = fileTree(filepath, 1, '', []);
-
     res.json({
       data: tree,
       ret_code: 1,
@@ -212,8 +187,6 @@ router.get("/getAll", function (req, res) {
       ret_msg: '文件不存在'
     });
   }
-
-
 });
 router.get("fileServer/:account/:path", function (req, res) {
   let queryPath = req.query.path ? '/' + req.query.path : ''
@@ -221,9 +194,7 @@ router.get("fileServer/:account/:path", function (req, res) {
   fs.exists(filePath, function (exists) {
     res.sendfile(exists ? filePath : '');
   });
-
 });
-
 router.post("/delete", function (req, res) {
   const account = req.body.account;
   const filepath = path.join(__dirname, '/uploads/' + account + '/' + req.body.filepath)
@@ -232,17 +203,14 @@ router.post("/delete", function (req, res) {
     nameList.forEach(element => {
       if (fs.statSync(filepath + '/' + element).isDirectory()) {
         deleteFolder(filepath + '/' + element)
-
       } else {
         fs.unlinkSync(filepath + '/' + element)
       }
-
     });
     res.json({
       ret_code: 1,
       ret_msg: '删除成功'
     });
-
   } catch (error) {
     res.json({
       ret_code: -1,
@@ -254,7 +222,6 @@ router.post("/rename", function (req, res) {
   const account = req.body.account;
   const filepath = path.join(__dirname, '/uploads/' + account + '/' + req.body.path)
   const newName = path.join(__dirname, '/uploads/' + account + '/' + req.body.newName)
-
   try {
     fs.rename(filepath, newName, function (err) {
       if (err) {
@@ -271,8 +238,6 @@ router.post("/rename", function (req, res) {
       ret_msg: '重命名失败'
     });
   }
-
-
 });
 router.post("/move", function (req, res) {
   const account = req.body.account;
@@ -306,8 +271,6 @@ router.post("/move", function (req, res) {
       ret_msg: '移动失败'
     });
   }
-
-
 });
 router.get("/download", function (req, res) {
   let fileName = req.query.name;
@@ -329,8 +292,6 @@ router.get("/download", function (req, res) {
       res.end();
     }
   });
-
-
 });
 router.get("/batchDownload", function (req, res) {
   let account = req.query.account;
@@ -349,7 +310,6 @@ router.get("/batchDownload", function (req, res) {
         } else if (stats.isDirectory()) {
           copyDir(sourceFile, destPath)// 是目录，递归复制
         }
-
       } else {
         res.json({
           ret_code: 3,
@@ -376,13 +336,6 @@ router.get("/batchDownload", function (req, res) {
       deleteFolder(destPath);
       fs.unlinkSync(destPath + '.zip');
     });
-
-
-
-
-
-
-
 });
 router.post("/create", function (req, res) {
   let account = req.body.account;
@@ -393,16 +346,13 @@ router.post("/create", function (req, res) {
     ret_code: 1,
     ret_msg: '创建成功'
   });
-
 });
 router.post("/getdirsize", function (req, res) {
-
   res.json({
     size: getdirsize(path.join(__dirname, '/uploads/' + req.query.account)),
     ret_code: 1,
     ret_msg: '文件不存在'
   });
-
 });
 function fileTree (target, deep, prev, tree) { //    target：当前文件的绝对路径    deep：层级
   // let prev = new Array(deep).join("/");
