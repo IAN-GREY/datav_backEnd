@@ -1,16 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const multer = require('multer');
-const string2fileStream = require('string-to-file-stream');
 const path = require('path');
 var fs = require('fs')
-var zlib = require('zlib')
-var tar = require('tar')
-var fstream = require('fstream')
 const compressing = require('compressing');
-router.use((req, res, next) => {
-  next()
-})
+
+
+const auth = require('./middleware/auth')
+router.use(auth)
 router.post("/upload", function (req, res) {
   const filepath = path.join(__dirname, '/uploads/' + req.body.account + '/' + req.body.path)
   try {
@@ -79,7 +76,7 @@ router.post("/batchUpload", function (req, res) {
       let account = req.body.account;
       if (!account) {
         res.json({
-          ret_code: -1,
+          ret_code: 2,
           ret_msg: 'account is required!'
         });
         return
@@ -88,14 +85,14 @@ router.post("/batchUpload", function (req, res) {
         fs.readFile(item.path, (err, data) => {
           if (err) {
             return res.json({
-              ret_code: -1,
+              ret_code: 2,
               ret_msg: '上传失败'
             });
           }
           fs.writeFile(path.join(__dirname, '/uploads/' + account + '/' + dir[index]), data, (err) => {
             if (err) {
               return res.json({
-                ret_code: -1,
+                ret_code: 2,
                 ret_msg: '上传失败'
               });
             }
@@ -135,6 +132,7 @@ router.get("/get", function (req, res) {
     let pagedFiles = files.slice(startIndex, endIndex)
     pagedFiles.forEach(function (file) {
       var states = fs.statSync(filepath + '/' + file);
+
       {
         var obj = {
           size: '',
@@ -142,7 +140,8 @@ router.get("/get", function (req, res) {
           path: ''
         };
         obj.size = states.size;//文件大小，以字节为单位
-        obj.isFolder = !states.isFile()
+        obj.createTime = states.birthtime,
+          obj.isFolder = !states.isFile()
         obj.name = file;//文件名
         obj.path = filepath + '/' + file; //文件绝对路径
         fileData.push(obj)
@@ -452,19 +451,14 @@ function _copy (src, dist) {
 */
 function copyDir (src, dist) {
   var b = fs.existsSync(dist)
-  console.log("dist = " + dist)
   if (!b) {
-    console.log("mk dist = ", dist)
     mkdirsSync(dist);//创建目录
   }
-  console.log("_copy start")
   _copy(src, dist);
 }
 
 function createDocs (src, dist, callback) {
-  console.log("createDocs...")
   copyDir(src, dist);
-  console.log("copyDir finish exec callback")
   if (callback) {
     callback();
   }

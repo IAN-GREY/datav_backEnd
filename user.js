@@ -1,17 +1,21 @@
+/*
+ * @Description: 
+ * @Author: 沈林圩
+ * @Date: 2020-08-24 12:48:29
+ * @LastEditTime: 2020-09-09 14:22:37
+ * @LastEditors: 沈林圩
+ */
 const express = require("express");
 const router = express.Router();
 var moment = require('moment');
 var jwt = require('jwt-simple');
-
-router.use((req, res, next) => {
-  next()
-})
+const { Users } = require('./model/model')
+const auth = require('./middleware/auth')
+router.use(auth)
 router.post("/register", function (req, res) {
   let param = {
     account: req.body.account,
-    username: req.body.username,
     password: req.body.password,
-    avatar: req.body.avatar,
   }
   var date = new Date();
   var year = date.getFullYear();
@@ -21,7 +25,7 @@ router.post("/register", function (req, res) {
   var minute = date.getMinutes();
   var second = date.getSeconds();
   param['created_time'] = year + '年' + month + '月' + day + '日' + hour + ':' + minute + ':' + second
-  mdb.collection('user').findOne({ account: req.body.account }, function (err, result) {
+  Users.findOne({ account: req.body.account }, function (err, result) {
     if (err) throw err;
     if (result) {
       res.json({
@@ -30,7 +34,7 @@ router.post("/register", function (req, res) {
       });
     }
     else {
-      mdb.collection('user').insertOne(param, function (err, result) {
+      Users.insertOne(param, function (err, result) {
         if (err) throw err;
         if (result) {
           var expires = moment().add(7, 'days').valueOf();
@@ -41,6 +45,7 @@ router.post("/register", function (req, res) {
           res.json({
             ret_code: 2,
             token: token,
+            account: result.account,
             expires: expires,
             ret_msg: '注册成功'
           });
@@ -53,7 +58,7 @@ router.post("/register", function (req, res) {
 router.post("/login", function (req, res) {
   var account = req.body.account;
   var password = req.body.password;
-  mdb.collection("user").findOne({ account: account, password: password }, function (err, result) {
+  Users.findOne({ account: account, password: password }, function (err, result) {
     if (err) throw err;
     if (result) {
       var expires = moment().add(7, 'days').valueOf();
@@ -64,7 +69,7 @@ router.post("/login", function (req, res) {
       res.json({
         token: token,
         expires: expires,
-        username: result.username,
+        nickname: result.nickname,
         account: result.account,
       })
     } else {
