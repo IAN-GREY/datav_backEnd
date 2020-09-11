@@ -9,31 +9,29 @@ const compressing = require('compressing');
 const auth = require('./middleware/auth')
 router.use(auth)
 router.post("/upload", function (req, res) {
-  const filepath = path.join(__dirname, '/uploads/' + req.body.account + '/' + req.body.path)
-  try {
-    if (fs.existsSync(filepath)) {
-      let ret_msg = '文件上传成功'
-      if (fs.existsSync(filepath + '/' + req.body.name)) {
-        ret_msg = '文件覆盖成功'
-      }
-      fs.writeFile(filepath + '/' + req.body.name, req.file[0].path, (err) => {
-        res.json({
-          ret_code: 1,
-          ret_msg: ret_msg
-        });
-      });
-    } else {
-      res.json({
-        ret_code: -1,
-        ret_msg: '文件路径错误'
-      });
-    }
-  } catch (error) {
+  console.log(222, req.files)
+  const filepath = path.join(__dirname, '/uploads/' + req.body.account + '/' + req.body.path) 、
+  if (fs.existsSync(filepath + '/' + req.body.name)) {
     res.json({
-      ret_code: -1,
-      ret_msg: '文件上传失败'
+      code: 201,
+      msg: '同名文件已存在！'
     });
+    return
   }
+  fs.writeFile(filepath + '/' + req.body.name, req.files[0].path, (err) => {
+    if (err) {
+      res.json({
+        code: 201,
+        msg: '文件上传失败！'
+      });
+      return
+    }
+    res.json({
+      code: 200,
+      msg: '文件上传成功！'
+    });
+  });
+
 });
 function makeNewDir (dir_path, dir) {
   if (!dir_path) {
@@ -53,7 +51,8 @@ function makeNewDir (dir_path, dir) {
     }
   }
 }
-router.post("/batchUpload", function (req, res) {
+router.post("/batch-upload", function (req, res) {
+  console.log(333, req.files)
   var storage = multer.diskStorage({
     destination: path.join(__dirname, '/uploads')
   });
@@ -73,33 +72,25 @@ router.post("/batchUpload", function (req, res) {
     if (err) {
       return res.end('Error');
     } else {
-      let account = req.body.account;
-      if (!account) {
-        res.json({
-          ret_code: 2,
-          ret_msg: 'account is required!'
-        });
-        return
-      }
       req.files.forEach(function (item, index) {
         fs.readFile(item.path, (err, data) => {
           if (err) {
             return res.json({
-              ret_code: 2,
-              ret_msg: '上传失败'
+              code: 201,
+              msg: '上传失败'
             });
           }
-          fs.writeFile(path.join(__dirname, '/uploads/' + account + '/' + dir[index]), data, (err) => {
+          fs.writeFile(path.join(__dirname, '/uploads/' + req.body.account + '/' + dir[index]), data, (err) => {
             if (err) {
               return res.json({
-                ret_code: 2,
-                ret_msg: '上传失败'
+                code: 201,
+                msg: '上传失败'
               });
             }
             if (index == req.files.length - 1) {
               res.json({
-                ret_code: 1,
-                ret_msg: '上传成功'
+                code: 200,
+                msg: '上传成功'
               });
             }
             fs.unlinkSync(item.path)
@@ -157,18 +148,18 @@ router.get("/get", function (req, res) {
         pages: Math.ceil(files.length / pageSize),
         total: files.length,
       },
-      ret_code: 1,
-      ret_msg: 'success'
+      code: 200,
+      msg: '上传成功'
     });
   } catch (error) {
     console.log(error)
     res.json({
-      ret_code: -1,
-      ret_msg: '文件不存在'
+      code: 404,
+      msg: '文件不存在'
     });
   }
 });
-router.get("/getAll", function (req, res) {
+router.get("/get-all", function (req, res) {
   const param = {
     account: req.query.account,
   }
@@ -177,13 +168,13 @@ router.get("/getAll", function (req, res) {
     let tree = fileTree(filepath, 1, '', []);
     res.json({
       data: tree,
-      ret_code: 1,
-      ret_msg: 'success'
+      code: 1,
+      msg: 'success'
     });
   } catch (error) {
     res.json({
-      ret_code: -1,
-      ret_msg: '文件不存在'
+      code: -1,
+      msg: '文件不存在'
     });
   }
 });
@@ -207,34 +198,34 @@ router.post("/delete", function (req, res) {
       }
     });
     res.json({
-      ret_code: 1,
-      ret_msg: '删除成功'
+      code: 1,
+      msg: '删除成功'
     });
   } catch (error) {
     res.json({
-      ret_code: -1,
-      ret_msg: '删除失败'
+      code: -1,
+      msg: '删除失败'
     });
   }
 });
 router.post("/rename", function (req, res) {
   const account = req.body.account;
   const filepath = path.join(__dirname, '/uploads/' + account + '/' + req.body.path)
-  const newName = path.join(__dirname, '/uploads/' + account + '/' + req.body.newName)
+  const newName = path.join(__dirname, '/uploads/' + account + '/' + req.body.name)
   try {
     fs.rename(filepath, newName, function (err) {
       if (err) {
         throw err;
       }
       res.json({
-        ret_code: 1,
-        ret_msg: '重命名成功'
+        code: 1,
+        msg: '重命名成功'
       });
     })
   } catch (error) {
     res.json({
-      ret_code: -1,
-      ret_msg: '重命名失败'
+      code: -1,
+      msg: '重命名失败'
     });
   }
 });
@@ -255,19 +246,19 @@ router.post("/move", function (req, res) {
         }
       } else {
         res.json({
-          ret_code: 3,
-          ret_msg: '文件不存在'
+          code: 3,
+          msg: '文件不存在'
         });
       }
     });
     res.json({
-      ret_code: 1,
-      ret_msg: '移动成功'
+      code: 1,
+      msg: '移动成功'
     });
   } catch (error) {
     res.json({
-      ret_code: -1,
-      ret_msg: '移动失败'
+      code: -1,
+      msg: '移动失败'
     });
   }
 });
@@ -292,7 +283,7 @@ router.get("/download", function (req, res) {
     }
   });
 });
-router.get("/batchDownload", function (req, res) {
+router.get("/batch-download", function (req, res) {
   let account = req.query.account;
   let filePath = req.query.path;
   let filesList = req.query.name.split(',')
@@ -311,8 +302,8 @@ router.get("/batchDownload", function (req, res) {
         }
       } else {
         res.json({
-          ret_code: 3,
-          ret_msg: '文件不存在'
+          code: 3,
+          msg: '文件不存在'
         });
       }
     });
@@ -338,19 +329,19 @@ router.get("/batchDownload", function (req, res) {
 });
 router.post("/create", function (req, res) {
   let account = req.body.account;
-  let filePath = req.body.filePath;
+  let filePath = req.body.path;
   const destPath = path.join(__dirname, '/uploads/' + account + '/' + filePath)
   mkdirsSync(destPath)
   res.json({
-    ret_code: 1,
-    ret_msg: '创建成功'
+    code: 1,
+    msg: '创建成功'
   });
 });
 router.post("/getdirsize", function (req, res) {
   res.json({
     size: getdirsize(path.join(__dirname, '/uploads/' + req.query.account)),
-    ret_code: 1,
-    ret_msg: '文件不存在'
+    code: 1,
+    msg: '文件不存在'
   });
 });
 function fileTree (target, deep, prev, tree) { //    target：当前文件的绝对路径    deep：层级

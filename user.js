@@ -2,16 +2,18 @@
  * @Description: 
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-09-09 14:22:37
+ * @LastEditTime: 2020-09-10 14:40:52
  * @LastEditors: 沈林圩
  */
 const express = require("express");
 const router = express.Router();
+const path = require('path');
+var fs = require('fs')
 var moment = require('moment');
 var jwt = require('jwt-simple');
 const { Users } = require('./model/model')
 const auth = require('./middleware/auth')
-router.use(auth)
+
 router.post("/register", function (req, res) {
   let param = {
     account: req.body.account,
@@ -29,12 +31,12 @@ router.post("/register", function (req, res) {
     if (err) throw err;
     if (result) {
       res.json({
-        ret_code: 1,
-        ret_msg: '用户名已存在请更换用户名！'
+        code: 400,
+        msg: '用户名已存在请更换用户名！'
       });
     }
     else {
-      Users.insertOne(param, function (err, result) {
+      Users.create(param, function (err, result) {
         if (err) throw err;
         if (result) {
           var expires = moment().add(7, 'days').valueOf();
@@ -43,11 +45,11 @@ router.post("/register", function (req, res) {
             exp: expires,
           }, app.get('jwtTokenSecret'));
           res.json({
-            ret_code: 2,
+            code: 200,
             token: token,
             account: result.account,
             expires: expires,
-            ret_msg: '注册成功'
+            msg: '注册成功'
           });
         }
       });
@@ -67,19 +69,44 @@ router.post("/login", function (req, res) {
         exp: expires,
       }, app.get('jwtTokenSecret'));
       res.json({
+        code: 200,
+        msg: '登录成功',
         token: token,
         expires: expires,
-        nickname: result.nickname,
-        account: result.account,
+        data: {
+          account: result.account,
+        }
       })
     } else {
       res.json({
-        ret_code: 1,
-        ret_msg: '用户名或密码错误！'
+        code: 400,
+        msg: '用户名或密码错误！'
       });
     }
   });
 });
-
+router.post("/avatar", function (req, res) {
+  const filepath = path.join(__dirname, '/uploads/' + req.body.account + '_avatar.png')
+  console.log('???', req.files)
+  fs.writeFile(filepath, req.files[0].path, (err) => {
+    if (err) {
+      res.json({
+        code: 200,
+        data: {
+          avatar: req.body.account + '_avatar.png'
+        },
+        msg: '上传失败'
+      });
+    } else {
+      res.json({
+        code: 200,
+        data: {
+          avatar: req.body.account + '_avatar.png'
+        },
+        msg: '上传成功'
+      });
+    }
+  });
+});
 module.exports = router;
 

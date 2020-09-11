@@ -2,7 +2,7 @@
  * @Description: 接口
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-09-09 14:20:32
+ * @LastEditTime: 2020-09-10 11:38:42
  * @LastEditors: 沈林圩
  */
 const express = require("express");
@@ -17,7 +17,7 @@ router.use(auth)
  * @param {password} 密码
  * @return {string}
  */
-router.get("/checkPassword", function (req, res) {
+router.get("/check-password", function (req, res) {
   const param = {
     pId: req.query.pId,
     password: req.query.password,
@@ -27,19 +27,19 @@ router.get("/checkPassword", function (req, res) {
     if (result) {
       if (result[0].password == req.query.password) {
         res.json({
-          ret_code: 1,
-          ret_msg: '密码正确'
+          code: 1,
+          msg: '密码正确'
         });
       } else {
         res.json({
-          ret_code: 0,
-          ret_msg: '密码错误'
+          code: 0,
+          msg: '密码错误'
         });
       }
     }
   });
 });
-router.get("/getAll", function (req, res) {//
+router.get("/get-all", function (req, res) {//
   const param = {
     account: req.query.account
   }
@@ -48,8 +48,8 @@ router.get("/getAll", function (req, res) {//
     if (result) {
       res.json({
         data: result,
-        ret_code: 1,
-        ret_msg: '查询成功'
+        code: 1,
+        msg: '查询成功'
       });
     }
   });
@@ -63,30 +63,30 @@ router.get("/getOne", function (req, res) {
     if (result) {
       if (result.status == 0) {
         res.json({
-          ret_code: 0,
-          ret_msg: '项目未发布'
+          code: 0,
+          msg: '项目未发布'
         });
       } else if (result.status == 1) {
         res.json({
           data: result,
-          ret_code: 1,
-          ret_msg: '查询成功'
+          code: 1,
+          msg: '查询成功'
         });
       } else if (result.status == 2) {
         res.json({
-          ret_code: 2,
-          ret_msg: '需要密码'
+          code: 2,
+          msg: '需要密码'
         });
       }
 
     }
   });
 });
-router.post("/add", function (req, res) {
+router.post("/create", function (req, res) {
   const id = uuid.v1()
   const param = {
     account: req.body.account,
-    config_data: req.body.config_data,
+    config_data: req.body.data,
     title: req.body.title,
     name: req.body.name,
     background: req.body.background,
@@ -104,12 +104,17 @@ router.post("/add", function (req, res) {
   param['publish_date'] = year + '年' + month + '月' + day + '日 ' + hour + ':' + minute + ':' + second
 
 
-  Projects.insertOne(param, function (err, result) {
-    if (err) throw err;
+  Projects.create(param, function (err, result) {
+    if (err) {
+      res.json({
+        code: 201,
+        msg: '添加失败'
+      });
+    };
     if (result) {
       res.json({
-        ret_code: 1,
-        ret_msg: '添加成功'
+        code: 200,
+        msg: '添加成功'
       });
     }
   });
@@ -117,8 +122,8 @@ router.post("/add", function (req, res) {
 router.post("/delete", function (req, res) {
   if (!req.body.pid) {
     res.json({
-      ret_code: 2,
-      ret_msg: 'pId字段不能为空'
+      code: 400,
+      msg: 'pId字段不能为空'
     });
     return
   }
@@ -128,15 +133,15 @@ router.post("/delete", function (req, res) {
   Projects.deleteOne(param, function (err, result) {
     if (err) {
       res.json({
-        ret_code: 2,
-        ret_msg: '删除失败'
+        code: 201,
+        msg: '删除失败'
       });
       throw err;
     }
     if (result) {
       res.json({
-        ret_code: 1,
-        ret_msg: '删除成功'
+        code: 200,
+        msg: '删除成功'
       });
     }
   });
@@ -163,15 +168,15 @@ router.post("/update", function (req, res) {
   Projects.updateOne({ "pId": req.body.pId }, param, function (err, result) {
     if (err) {
       res.json({
-        ret_code: 2,
-        ret_msg: '修改失败'
+        code: 201,
+        msg: '修改失败'
       });
       throw err
     };
     if (result) {
       res.json({
-        ret_code: 1,
-        ret_msg: '修改成功'
+        code: 200,
+        msg: '修改成功'
       });
     }
   });
