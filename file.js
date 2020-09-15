@@ -4,55 +4,59 @@ const multer = require('multer');
 const path = require('path');
 var fs = require('fs')
 const compressing = require('compressing');
-
-
 const auth = require('./middleware/auth')
 router.use(auth)
-router.post("/upload", function (req, res) {
-  console.log(222, req.files)
-  const filepath = path.join(__dirname, '/uploads/' + req.body.account + '/' + req.body.path) 、
-  if (fs.existsSync(filepath + '/' + req.body.name)) {
-    res.json({
-      code: 201,
-      msg: '同名文件已存在！'
-    });
-    return
-  }
-  fs.writeFile(filepath + '/' + req.body.name, req.files[0].path, (err) => {
-    if (err) {
+var storage = multer.diskStorage({
+  //设置文件上传的位置，cb(callback简写)
+  destination: path.join(__dirname, '/uploads')
+  // destination: function (req, file, cb) {
+  //     //上传到path变量所指定的位置
+  //     cb(null, path);
+  // },
+  //设置上传文件名称的操作
+  // filename: function (req, file, cb) {
+  //     //对于文件名进行相关的操作
+  //     //获取原始文件的扩展名
+  //     var extension = file.originalname.substr(file.originalname.lastIndexOf('.')+1).toLowerCase();
+  //     //生成新的文件名
+  //     var filename = uuid.v1() + '.' + extension;
+  //     cb(null, filename);
+  // }
+});
+var upload = multer({ storage: storage });
+router.post("/upload", upload.single('file'), auth, function (req, res) {
+  const destpath = path.join(__dirname, '/uploads/' + req.body.account + '/' + (req.body.path ? req.body.path + '/' : '') + req.file.originalname)
+  try {
+    if (fs.existsSync(destpath)) {
       res.json({
         code: 201,
-        msg: '文件上传失败！'
+        path: (req.body.path ? req.body.path + '/' : '') + req.file.originalname,
+        msg: '同名文件已存在'
       });
       return
+    } else {
+      fs.readFile(req.file.path, (err, data) => {
+        fs.writeFile(destpath, data, (err) => {
+          res.json({
+            code: 200,
+            path: (req.body.path ? req.body.path + '/' : '') + req.file.originalname,
+            msg: '文件上传成功'
+          });
+          fs.unlink(req.file.path, (err) => {
+          })
+        });
+      });
     }
+  } catch (error) {
+    console.log(error)
     res.json({
-      code: 200,
-      msg: '文件上传成功！'
+      code: 201,
+      msg: '文件上传失败'
     });
-  });
+  }
 
 });
-function makeNewDir (dir_path, dir) {
-  if (!dir_path) {
-    return
-  }
-  if (fs.existsSync(path.join(__dirname, '/uploads/' + dir_path))) {
-    if (dir[0]) {
-      makeNewDir(dir_path + '/' + dir[0], dir.slice(1))
-    }
-  } else {
-    fs.mkdirSync(path.join(__dirname, '/uploads/' + dir_path))
-    if (dir[0]) {
-      fs.mkdirSync(path.join(__dirname, '/uploads/' + dir_path + '/' + dir[0]))
-      if (dir[1]) {
-        makeNewDir(dir_path + '/' + dir[0], dir.slice(1))
-      }
-    }
-  }
-}
 router.post("/batch-upload", function (req, res) {
-  console.log(333, req.files)
   var storage = multer.diskStorage({
     destination: path.join(__dirname, '/uploads')
   });
@@ -123,21 +127,23 @@ router.get("/get", function (req, res) {
     let pagedFiles = files.slice(startIndex, endIndex)
     pagedFiles.forEach(function (file) {
       var states = fs.statSync(filepath + '/' + file);
-
       {
         var obj = {
           size: '',
           name: '',
           path: ''
         };
-        obj.size = states.size;//文件大小，以字节为单位
-        obj.createTime = states.birthtime,
-          obj.isFolder = !states.isFile()
+        obj.size = getdirsize(filepath + '/' + file)
+        obj.createTime = states.birthtime;
+        obj.isFolder = !states.isFile();
         obj.name = file;//文件名
         obj.path = filepath + '/' + file; //文件绝对路径
         fileData.push(obj)
-        totalSize += states.size
       }
+    })
+    files.forEach(function (file) {
+      let itemsize = getdirsize(filepath + '/' + file)
+      totalSize += itemsize
     })
     res.json({
       data: {
@@ -177,13 +183,6 @@ router.get("/get-all", function (req, res) {
       msg: '文件不存在'
     });
   }
-});
-router.get("fileServer/:account/:path", function (req, res) {
-  let queryPath = req.query.path ? '/' + req.query.path : ''
-  const filepath = path.join(__dirname, '/uploads/' + req.query.account + queryPath)
-  fs.exists(filePath, function (exists) {
-    res.sendfile(exists ? filePath : '');
-  });
 });
 router.post("/delete", function (req, res) {
   const account = req.body.account;
@@ -231,33 +230,41 @@ router.post("/rename", function (req, res) {
 });
 router.post("/move", function (req, res) {
   const account = req.body.account;
-  const sourceFile = path.join(__dirname, '/uploads/' + account + '/' + req.body.oldPath)
-  const destPath = path.join(__dirname, '/uploads/' + account + '/' + req.body.newPath)
+  const files = req.body.name.split(',')
   try {
-    let stats = fs.statSync(sourceFile);
-    fs.exists(sourceFile, function (exist) {
-      if (exist) {
-        if (stats.isFile()) {// 判断是文件还是目录
-          fs.writeFileSync(destPath, fs.readFileSync(sourceFile));
-          fs.unlinkSync(sourceFile)
-        } else if (stats.isDirectory()) {
-          copyDir(sourceFile, destPath)// 是目录，递归复制
-          deleteFolder(sourceFile);
+    for (let index = 0; index < files.length; index++) {
+      const sourceFile = path.join(__dirname, '/uploads/' + account + '/' + req.body.oldPath + '/' + files[index])
+      const destPath = path.join(__dirname, '/uploads/' + account + '/' + req.body.newPath + '/' + files[index])
+      let stats = fs.statSync(sourceFile);
+      fs.exists(sourceFile, function (exist) {
+        if (exist) {
+          if (stats.isFile()) {// 判断是文件还是目录
+            fs.writeFileSync(destPath, fs.readFileSync(sourceFile));
+            fs.unlinkSync(sourceFile)
+          } else if (stats.isDirectory()) {
+            copyDir(sourceFile, destPath)// 是目录，递归复制
+            deleteFolder(sourceFile);
+          }
+        } else {
+          res.json({
+            code: 201,
+            msg: '文件不存在'
+          });
+          return
         }
-      } else {
+      });
+      if (index === files.length - 1) {
         res.json({
-          code: 3,
-          msg: '文件不存在'
+          code: 1,
+          msg: '移动成功'
         });
       }
-    });
-    res.json({
-      code: 1,
-      msg: '移动成功'
-    });
+
+    }
+
   } catch (error) {
     res.json({
-      code: -1,
+      code: 201,
       msg: '移动失败'
     });
   }
@@ -337,13 +344,6 @@ router.post("/create", function (req, res) {
     msg: '创建成功'
   });
 });
-router.post("/getdirsize", function (req, res) {
-  res.json({
-    size: getdirsize(path.join(__dirname, '/uploads/' + req.query.account)),
-    code: 1,
-    msg: '文件不存在'
-  });
-});
 function fileTree (target, deep, prev, tree) { //    target：当前文件的绝对路径    deep：层级
   // let prev = new Array(deep).join("/");
   let infos = fs.readdirSync(target);  // 读取当前文件目录
@@ -373,28 +373,48 @@ function fileTree (target, deep, prev, tree) { //    target：当前文件的绝
   })
   return tree
 }
-function getdirsize (dir, callback) {
-  var size = 0;
-  fs.stat(dir, function (err, stats) {
-    if (err) return callback(err);//如果出错
-    if (stats.isFile()) return callback(null, stats.size);//如果是文件
-
-    fs.readdir(dir, function (err, files) {//如果是目录
-      if (err) return callback(err);//如果遍历目录出错
-      if (files.length == 0) return callback(null, 0);//如果目录是空的
-
-      var count = files.length;//哨兵变量
-      for (var i = 0; i < files.length; i++) {
-        getdirsize(path.join(dir, files[i]), function (err, _size) {
-          if (err) return callback(err);
-          size += _size;
-          if (--count <= 0) {//如果目录中所有文件(或目录)都遍历完成
-            callback(null, size);
-          }
-        });
+function makeNewDir (dir_path, dir) {
+  if (!dir_path) {
+    return
+  }
+  if (fs.existsSync(path.join(__dirname, '/uploads/' + dir_path))) {
+    if (dir[0]) {
+      makeNewDir(dir_path + '/' + dir[0], dir.slice(1))
+    }
+  } else {
+    fs.mkdirSync(path.join(__dirname, '/uploads/' + dir_path))
+    if (dir[0]) {
+      fs.mkdirSync(path.join(__dirname, '/uploads/' + dir_path + '/' + dir[0]))
+      if (dir[1]) {
+        makeNewDir(dir_path + '/' + dir[0], dir.slice(1))
       }
-    });
-  });
+    }
+  }
+}
+function getdirsize (dir) {
+  try {
+    let size = 0
+    let stats = fs.statSync(dir)
+    if (stats.isFile()) {
+      return stats.size
+    }
+    let files = fs.readdirSync(dir)
+    if (files.length == 0) {
+      return 0
+    }
+    var count = files.length;
+    for (var i = 0; i < files.length; i++) {
+      let _size = getdirsize(path.join(dir, files[i]))
+
+      size += _size;
+      if (--count <= 0) {//如果目录中所有文件(或目录)都遍历完成
+        return size
+      }
+    }
+  } catch (error) {
+    console.log(err)
+  }
+
 }
 function mkdirsSync (dirname) {
   if (fs.existsSync(dirname)) {
@@ -434,7 +454,6 @@ function _copy (src, dist) {
     }
   })
 }
-
 /*
 * 复制目录、子目录，及其中的文件
 * @param src {String} 要复制的目录
@@ -446,13 +465,6 @@ function copyDir (src, dist) {
     mkdirsSync(dist);//创建目录
   }
   _copy(src, dist);
-}
-
-function createDocs (src, dist, callback) {
-  copyDir(src, dist);
-  if (callback) {
-    callback();
-  }
 }
 module.exports = router;
 
