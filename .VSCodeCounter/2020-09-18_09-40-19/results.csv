@@ -1,0 +1,10 @@
+"filename", "language", "JavaScript", "comment", "blank", "total"
+"f:\test\backEnd\src\App.js", "JavaScript", 50, 18, 3, 71
+"f:\test\backEnd\src\collection.js", "JavaScript", 58, 7, 7, 72
+"f:\test\backEnd\src\file.js", "JavaScript", 441, 20, 11, 472
+"f:\test\backEnd\src\middleware\auth.js", "JavaScript", 49, 7, 0, 56
+"f:\test\backEnd\src\middleware\user.js", "JavaScript", 0, 0, 1, 1
+"f:\test\backEnd\src\model\model.js", "JavaScript", 62, 7, 5, 74
+"f:\test\backEnd\src\project.js", "JavaScript", 166, 13, 7, 186
+"f:\test\backEnd\src\user.js", "JavaScript", 220, 7, 6, 233
+"Total", "-", 1046, 79, 40, 1165

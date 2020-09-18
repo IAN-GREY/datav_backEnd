@@ -54,7 +54,6 @@ router.post("/upload", upload.single('file'), auth, function (req, res) {
       msg: '文件上传失败'
     });
   }
-
 });
 router.post("/batch-upload", function (req, res) {
   var storage = multer.diskStorage({
@@ -172,8 +171,9 @@ router.get("/get-all", function (req, res) {
   const filepath = path.join(__dirname, '/uploads/' + req.query.account)
   try {
     let tree = fileTree(filepath, 1, '', []);
+    var newArr = tree.filter(item => item.split('/')[item.split('/').length - 1].indexOf(req.query.keyWord) !== -1)
     res.json({
-      data: tree,
+      data: newArr,
       code: 1,
       msg: 'success'
     });
@@ -259,9 +259,7 @@ router.post("/move", function (req, res) {
           msg: '移动成功'
         });
       }
-
     }
-
   } catch (error) {
     res.json({
       code: 201,
@@ -338,18 +336,24 @@ router.post("/create", function (req, res) {
   let account = req.body.account;
   let filePath = req.body.path;
   const destPath = path.join(__dirname, '/uploads/' + account + '/' + filePath)
-  mkdirsSync(destPath)
-  res.json({
-    code: 1,
-    msg: '创建成功'
-  });
+  try {
+    mkdirsSync(destPath)
+    res.json({
+      code: 200,
+      msg: '创建成功'
+    });
+  } catch (error) {
+    res.json({
+      code: 201,
+      msg: '创建失败'
+    });
+  }
 });
 function fileTree (target, deep, prev, tree) { //    target：当前文件的绝对路径    deep：层级
   // let prev = new Array(deep).join("/");
   let infos = fs.readdirSync(target);  // 读取当前文件目录
   let files = [];  // 创建一个数组 用来存放文件
   let dirs = [];  // 创建一个数组 用来存放文件夹
-
   infos.forEach(item => {  // 遍历获取到的当前文件
     let tmpdir = path.join(target, item);  //拼接文件的绝对路径
     let stat = fs.statSync(tmpdir);  // 获取文件的状态
@@ -359,14 +363,12 @@ function fileTree (target, deep, prev, tree) { //    target：当前文件的绝
       dirs.push(item);  // 存放在dirs数组中
     }
   });
-
   dirs.forEach(item => {  // 遍历dirs数组  打印文件夹并递归
     tree.push(`${prev}/${item}`)
     let nexttarget = path.join(target, item); // 拼接文件夹的绝对路径 目的：以当前文件夹为目录
     let nextdeep = deep + 1;
     tree = fileTree(nexttarget, nextdeep, prev + '/' + item, tree)  // 再次调用tree函数  替换参数
   });
-
   let count = files.length - 1;   // 定义一个count 表示当前存放文件的数组长度-1
   files.forEach(item => {   // 遍历 files 数组
     tree.push(`${prev}/${item}`)
@@ -405,7 +407,6 @@ function getdirsize (dir) {
     var count = files.length;
     for (var i = 0; i < files.length; i++) {
       let _size = getdirsize(path.join(dir, files[i]))
-
       size += _size;
       if (--count <= 0) {//如果目录中所有文件(或目录)都遍历完成
         return size
@@ -414,7 +415,6 @@ function getdirsize (dir) {
   } catch (error) {
     console.log(err)
   }
-
 }
 function mkdirsSync (dirname) {
   if (fs.existsSync(dirname)) {
@@ -467,5 +467,3 @@ function copyDir (src, dist) {
   _copy(src, dist);
 }
 module.exports = router;
-
-
