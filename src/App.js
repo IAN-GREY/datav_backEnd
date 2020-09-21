@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-09-15 10:43:37
+ * @LastEditTime: 2020-09-21 14:40:57
  * @LastEditors: 沈林圩
  */
 var express = require('express');
@@ -57,10 +57,12 @@ const project = require("./project");
 const collection = require("./collection");
 const user = require("./user");
 const file = require("./file");
+const codeSegment = require("./codeSegment");
 app.use("/file", file);
 app.use("/user", user);
 app.use("/project", project);
 app.use("/collection", collection);
+app.use("/codeSegment", codeSegment);
 app.use(express.static(path.join(__dirname, 'uploads')))
 var server = app.listen(8881, function () {
   var host = server.address().address;

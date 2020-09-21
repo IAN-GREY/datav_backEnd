@@ -2,7 +2,7 @@
  * @Description: 数据模型
  * @Author: 沈林圩
  * @Date: 2020-09-09 11:28:32
- * @LastEditTime: 2020-09-09 14:26:13
+ * @LastEditTime: 2020-09-21 15:35:59
  * @LastEditors: 沈林圩
  */
 const mongoose = require('mongoose');
@@ -55,7 +55,26 @@ const projectSchma = new mongoose.Schema({
     type: String,
   }
 })
-
+const codeSegmentSchma = new mongoose.Schema({
+  account: {//所属账号
+    type: String,
+  },
+  code: {
+    type: String,
+  },
+  name: {
+    type: String,
+  },
+  create_time: {
+    type: String,
+  },
+  update_time: {
+    type: String,
+  },
+  uuid: {
+    type: String,
+  },
+})
 const collectionSchma = new mongoose.Schema({
   account: {
     type: String,
@@ -71,4 +90,5 @@ const collectionSchma = new mongoose.Schema({
 const Users = mongoose.model('user', userSchma)
 const Collections = mongoose.model('collection', collectionSchma)
 const Projects = mongoose.model('project', projectSchma)
-module.exports = { Users, Collections, Projects }
+const codeSegments = mongoose.model('codeSegment', codeSegmentSchma)
+module.exports = { Users, Collections, Projects, codeSegments }
