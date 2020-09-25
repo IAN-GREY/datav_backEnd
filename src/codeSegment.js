@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: 沈林圩
  * @Date: 2020-09-21 13:42:22
- * @LastEditTime: 2020-09-21 15:37:34
+ * @LastEditTime: 2020-09-25 15:05:31
  * @LastEditors: 沈林圩
  */
 
@@ -55,7 +55,10 @@ router.post("/create", function (req, res) {
     if (result) {
       res.json({
         code: 200,
-        msg: '添加成功'
+        msg: '添加成功',
+        data: {
+          uuid: uuid
+        }
       });
     }
   });
