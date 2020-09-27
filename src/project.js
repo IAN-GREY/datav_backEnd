@@ -2,7 +2,7 @@
  * @Description: 接口
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-09-10 11:38:42
+ * @LastEditTime: 2020-09-27 11:42:18
  * @LastEditors: 沈林圩
  */
 const express = require("express");
@@ -39,7 +39,8 @@ router.get("/check-password", function (req, res) {
     }
   });
 });
-router.get("/get-all", function (req, res) {//
+router.get("/get-all", function (req, res) {
+
   const param = {
     account: req.query.account
   }
