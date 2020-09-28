@@ -2,7 +2,7 @@
  * @Description: 接口
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-09-27 11:42:18
+ * @LastEditTime: 2020-09-28 19:28:46
  * @LastEditors: 沈林圩
  */
 const express = require("express");
@@ -164,6 +164,9 @@ router.post("/update", function (req, res) {
   }
   if (req.body.name) {
     param.$set['name'] = req.body.name
+  }
+  if (req.body.status) {
+    param.$set['status'] = req.body.status
   }
 
   Projects.updateOne({ "pId": req.body.pId }, param, function (err, result) {
