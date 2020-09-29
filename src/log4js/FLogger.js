@@ -1,10 +1,3 @@
-
-//
-// Author: Fanrncho
-// Date: 2019/06/24
-// Desc: log4js中间件的使用封装
-//
-
 const log4js = require('log4js');
 
 var LogType = {

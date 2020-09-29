@@ -1,0 +1,4 @@
+[2020-09-29T11:08:12.741] [ERROR] business_error - 这是一条日志测试打印 error！  66
+[2020-09-29T11:08:12.741] [ERROR] business_error - error  这是一条日志测试打印 error11111111111！  null
+[2020-09-29T17:47:14.806] [ERROR] business_error - 这是一条日志测试打印 error！  66
+[2020-09-29T17:47:14.807] [ERROR] business_error - error  这是一条日志测试打印 error11111111111！  null

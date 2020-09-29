@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-09-16 11:30:50
+ * @LastEditTime: 2020-09-29 16:49:48
  * @LastEditors: 沈林圩
  */
 const express = require("express");
@@ -120,6 +120,7 @@ router.post("/login", function (req, res) {
         data: {
           account: result.account,
           nickname: result.nickname,
+          avatar: result.avatar,
         }
       })
     } else {
@@ -164,10 +165,10 @@ router.post("/update", auth, function (req, res) {
     }
   }
   if (req.body.avatar) {
-    param.$set['config_data'] = req.body.avatar
+    param.$set['avatar'] = req.body.avatar
   }
   if (req.body.nickname) {
-    param.$set['title'] = req.body.nickname
+    param.$set['nickname'] = req.body.nickname
   }
   Users.updateOne({ "account": req.body.account }, param, function (err, result) {
     if (err) {
