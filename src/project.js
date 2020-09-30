@@ -2,7 +2,7 @@
  * @Description: 接口
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-09-28 19:28:46
+ * @LastEditTime: 2020-09-30 17:36:30
  * @LastEditors: 沈林圩
  */
 const express = require("express");
@@ -57,25 +57,26 @@ router.get("/get-all", function (req, res) {
 });
 router.get("/getOne", function (req, res) {
   const param = {
-    pId: req.query.pId
+    pId: req.query.pid
   }
   Projects.findOne(param, function (err, result) {
     if (err) throw err;
     if (result) {
+      result.config_data = JSON.parse(result.config_data)
       if (result.status == 0) {
         res.json({
-          code: 0,
+          code: 200,
           msg: '项目未发布'
         });
       } else if (result.status == 1) {
         res.json({
           data: result,
-          code: 1,
+          code: 200,
           msg: '查询成功'
         });
       } else if (result.status == 2) {
         res.json({
-          code: 2,
+          code: 200,
           msg: '需要密码'
         });
       }

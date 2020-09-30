@@ -7,21 +7,7 @@ const compressing = require('compressing');
 const auth = require('./middleware/auth')
 router.use(auth)
 var storage = multer.diskStorage({
-  //设置文件上传的位置，cb(callback简写)
   destination: path.join(__dirname, '/uploads')
-  // destination: function (req, file, cb) {
-  //     //上传到path变量所指定的位置
-  //     cb(null, path);
-  // },
-  //设置上传文件名称的操作
-  // filename: function (req, file, cb) {
-  //     //对于文件名进行相关的操作
-  //     //获取原始文件的扩展名
-  //     var extension = file.originalname.substr(file.originalname.lastIndexOf('.')+1).toLowerCase();
-  //     //生成新的文件名
-  //     var filename = uuid.v1() + '.' + extension;
-  //     cb(null, filename);
-  // }
 });
 var upload = multer({ storage: storage });
 router.post("/upload", upload.single('file'), auth, function (req, res) {
@@ -165,6 +151,8 @@ router.get("/get", function (req, res) {
   }
 });
 router.get("/get-all", function (req, res) {
+  console.log('触发错误')
+  // s = l
   const param = {
     account: req.query.account,
   }

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-09-27 12:10:21
+ * @LastEditTime: 2020-09-30 16:02:37
  * @LastEditors: 沈林圩
  */
 var express = require('express');
@@ -82,7 +82,7 @@ FLogger.fatal("fatal", "这是一条日志测试打印 fatal111111111111", "kkkk
 
 app.use(FLogger.netLog());
 app.use(bodyparser.json());
-app.set('jwtTokenSecret', 'YOUR_SCRET_STRING');
+app.set('jwtTokenSecret', 'YOUR_SCRET_STRING');//设置生成token的秘钥
 /**
  * session,cookie中间件。
  */
@@ -136,7 +136,10 @@ app.use("/codeSegment", codeSegment);
 app.use(express.static(path.join(__dirname, 'uploads')))
 
 app.use(function (err, req, res, next) {
+
+
   if (err) {
+    console.log('处理未知错误')
     FLogger.error("error", "未知错误", err, req.url, JSON.stringify(req.body), JSON.stringify(req.query));
     res.status(err.status || 500);
     res.json({
