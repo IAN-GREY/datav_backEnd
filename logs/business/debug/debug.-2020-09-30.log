@@ -16,3 +16,5 @@
 [2020-09-30T17:36:34.492] [DEBUG] business_debug - debug  这是一条日志测试打印 debug111111111！
 [2020-09-30T17:37:40.223] [DEBUG] business_debug - 这是一条日志测试打印 debug！
 [2020-09-30T17:37:40.223] [DEBUG] business_debug - debug  这是一条日志测试打印 debug111111111！
+[2020-09-30T18:03:13.640] [DEBUG] business_debug - 这是一条日志测试打印 debug！
+[2020-09-30T18:03:13.640] [DEBUG] business_debug - debug  这是一条日志测试打印 debug111111111！

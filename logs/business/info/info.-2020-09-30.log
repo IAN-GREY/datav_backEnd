@@ -16,3 +16,5 @@
 [2020-09-30T17:36:34.492] [INFO] business_info - info  这是一条日志测试打印 info11111111！  777  null
 [2020-09-30T17:37:40.223] [INFO] business_info - 这是一条日志测试打印 info！  jjjjjjj  8888  0.8  null  hhhhhhh
 [2020-09-30T17:37:40.224] [INFO] business_info - info  这是一条日志测试打印 info11111111！  777  null
+[2020-09-30T18:03:13.640] [INFO] business_info - 这是一条日志测试打印 info！  jjjjjjj  8888  0.8  null  hhhhhhh
+[2020-09-30T18:03:13.641] [INFO] business_info - info  这是一条日志测试打印 info11111111！  777  null
