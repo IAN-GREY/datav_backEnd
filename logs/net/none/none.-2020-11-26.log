@@ -1,0 +1,5 @@
+[2020-11-26T15:33:55.717] [DEBUG] net_none - ::1 - - "POST /user/auth HTTP/1.1" 200 67 "http://localhost:8080/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"
+[2020-11-26T15:34:03.055] [DEBUG] net_none - ::1 - - "POST /user/login HTTP/1.1" 200 48 "http://localhost:8080/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"
+[2020-11-26T15:34:06.172] [DEBUG] net_none - ::1 - - "POST /user/login HTTP/1.1" 200 266 "http://localhost:8080/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"
+[2020-11-26T15:34:07.386] [DEBUG] net_none - ::1 - - "GET /codeSegment/get HTTP/1.1" 200 217 "http://localhost:8080/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"
+[2020-11-26T15:34:07.392] [DEBUG] net_none - ::1 - - "GET /project/get-all?account=123 HTTP/1.1" 200 3382 "http://localhost:8080/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36"

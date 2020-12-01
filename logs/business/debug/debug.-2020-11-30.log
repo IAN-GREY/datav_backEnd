@@ -1,0 +1,6 @@
+[2020-11-30T10:49:32.000] [DEBUG] business_debug - 这是一条日志测试打印 debug！
+[2020-11-30T10:49:32.000] [DEBUG] business_debug - debug  这是一条日志测试打印 debug111111111！
+[2020-11-30T13:48:37.858] [DEBUG] business_debug - 这是一条日志测试打印 debug！
+[2020-11-30T13:48:37.858] [DEBUG] business_debug - debug  这是一条日志测试打印 debug111111111！
+[2020-11-30T13:48:51.630] [DEBUG] business_debug - 这是一条日志测试打印 debug！
+[2020-11-30T13:48:51.630] [DEBUG] business_debug - debug  这是一条日志测试打印 debug111111111！

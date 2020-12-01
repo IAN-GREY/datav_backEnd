@@ -337,6 +337,32 @@ router.post("/create", function (req, res) {
     });
   }
 });
+router.post("/coverImg", upload.single('file'), auth, function (req, res) {
+  let name = req.body.account + '_coverImg_' + req.body.projectId + '.png'
+  const destpath = path.join(__dirname, '/uploads/' + name)
+  try {
+    fs.readFile(req.file.path, (err, data) => {
+      fs.writeFile(destpath, data, (err) => {
+        res.json({
+          code: 200,
+          data: {
+            avatar: name
+          },
+          msg: '上传成功'
+        });
+        fs.unlink(req.file.path, (err) => {
+        })
+      });
+    });
+  } catch (error) {
+    console.log(error)
+    res.json({
+      code: 201,
+      msg: '上传失败'
+    });
+  }
+
+});
 function fileTree (target, deep, prev, tree) { //    target：当前文件的绝对路径    deep：层级
   // let prev = new Array(deep).join("/");
   let infos = fs.readdirSync(target);  // 读取当前文件目录

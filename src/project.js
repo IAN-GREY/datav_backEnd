@@ -2,7 +2,7 @@
  * @Description: 接口
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-09-30 17:36:30
+ * @LastEditTime: 2020-10-12 10:41:55
  * @LastEditors: 沈林圩
  */
 const express = require("express");
@@ -27,12 +27,12 @@ router.get("/check-password", function (req, res) {
     if (result) {
       if (result[0].password == req.query.password) {
         res.json({
-          code: 1,
+          code: 200,
           msg: '密码正确'
         });
       } else {
         res.json({
-          code: 0,
+          code: 201,
           msg: '密码错误'
         });
       }
@@ -49,7 +49,7 @@ router.get("/get-all", function (req, res) {
     if (result) {
       res.json({
         data: result,
-        code: 1,
+        code: 200,
         msg: '查询成功'
       });
     }
