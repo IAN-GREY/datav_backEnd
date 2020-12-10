@@ -42,6 +42,7 @@ router.post("/upload", upload.single('file'), auth, function (req, res) {
   }
 });
 router.post("/batch-upload", function (req, res) {
+  console.log(11111111111111)
   var storage = multer.diskStorage({
     destination: path.join(__dirname, '/uploads')
   });
@@ -185,12 +186,12 @@ router.post("/delete", function (req, res) {
       }
     });
     res.json({
-      code: 1,
+      code: 200,
       msg: '删除成功'
     });
   } catch (error) {
     res.json({
-      code: -1,
+      code: 201,
       msg: '删除失败'
     });
   }
@@ -198,20 +199,20 @@ router.post("/delete", function (req, res) {
 router.post("/rename", function (req, res) {
   const account = req.body.account;
   const filepath = path.join(__dirname, '/uploads/' + account + '/' + req.body.path)
-  const newName = path.join(__dirname, '/uploads/' + account + '/' + req.body.name)
+ 
   try {
-    fs.rename(filepath, newName, function (err) {
+    fs.rename(filepath+'/'+ req.body.oldName, filepath+'/'+ req.body.newName, function (err) {
       if (err) {
         throw err;
       }
       res.json({
-        code: 1,
+        code: 200,
         msg: '重命名成功'
       });
     })
   } catch (error) {
     res.json({
-      code: -1,
+      code: 201,
       msg: '重命名失败'
     });
   }
@@ -243,7 +244,7 @@ router.post("/move", function (req, res) {
       });
       if (index === files.length - 1) {
         res.json({
-          code: 1,
+          code: 200,
           msg: '移动成功'
         });
       }

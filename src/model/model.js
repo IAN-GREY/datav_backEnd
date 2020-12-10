@@ -14,13 +14,13 @@ const userSchma = new mongoose.Schema({
     type: String,
     unique: true, //只需要usernam为唯一值
     //必选字段 主键
-    required: [true, '请传入账号'],
-    //字符串的最小长度  minlength 和 maxlength都是用在字符串属性中的
-    minlength: [8, '账号长度不能小于8'],
-    //字符串的最大长度
-    maxlength: [12, '账号长度不能大于12'],
-    //去除字符串两边的空格
-    trim: true
+    // required: [true, '请传入账号'],
+    // //字符串的最小长度  minlength 和 maxlength都是用在字符串属性中的
+    // minlength: [8, '账号长度不能小于8'],
+    // //字符串的最大长度
+    // maxlength: [12, '账号长度不能大于12'],
+    // //去除字符串两边的空格
+    // trim: true
   },
   nickname: {
     type: String,
