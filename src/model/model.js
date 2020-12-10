@@ -2,7 +2,7 @@
  * @Description: 数据模型
  * @Author: 沈林圩
  * @Date: 2020-09-09 11:28:32
- * @LastEditTime: 2020-10-09 15:54:54
+ * @LastEditTime: 2020-12-10 15:42:04
  * @LastEditors: 沈林圩
  */
 const mongoose = require('mongoose');
@@ -60,6 +60,9 @@ const projectSchma = new mongoose.Schema({
     unique: true //唯一
   },
   publish_date: {
+    type: String,
+  },
+  modify_date: {
     type: String,
   }
 })

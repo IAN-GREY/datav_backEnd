@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-09-30 16:02:37
+ * @LastEditTime: 2020-12-10 15:49:22
  * @LastEditors: 沈林圩
  */
 var express = require('express');
@@ -140,6 +140,7 @@ app.use(function (err, req, res, next) {
 
   if (err) {
     console.log('处理未知错误')
+    console.log(err)
     FLogger.error("error", "未知错误", err, req.url, JSON.stringify(req.body), JSON.stringify(req.query));
     res.status(err.status || 500);
     res.json({

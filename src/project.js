@@ -2,7 +2,7 @@
  * @Description: 接口
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-10-12 10:41:55
+ * @LastEditTime: 2020-12-10 15:54:18
  * @LastEditors: 沈林圩
  */
 const express = require("express");
@@ -40,11 +40,18 @@ router.get("/check-password", function (req, res) {
   });
 });
 router.get("/get-all", function (req, res) {
-
-  const param = {
+  let param = {
     account: req.query.account
   }
-  Projects.find(param, function (err, result) {
+  if (req.query.keyword) {
+    param['name'] = { $regex: req.query.keyword }
+  }
+  let sortParams = { "publish_date": 1 }
+  if (req.query.orderType) {
+    sortParams[req.query.orderType] = 1
+    delete sortParams.publish_date
+  }
+  Projects.find(param).sort(sortParams).exec(function (err, result) {
     if (err) throw err;
     if (result) {
       res.json({
@@ -104,8 +111,7 @@ router.post("/create", function (req, res) {
   var minute = date.getMinutes();
   var second = date.getSeconds();
   param['publish_date'] = year + '年' + month + '月' + day + '日 ' + hour + ':' + minute + ':' + second
-
-
+  param['modify_date'] = year + '年' + month + '月' + day + '日 ' + hour + ':' + minute + ':' + second
   Projects.create(param, function (err, result) {
     if (err) {
       res.json({
@@ -169,7 +175,14 @@ router.post("/update", function (req, res) {
   if (req.body.status) {
     param.$set['status'] = req.body.status
   }
-
+  var date = new Date();
+  var year = date.getFullYear();
+  var month = date.getMonth() + 1;
+  var day = date.getDate();
+  var hour = date.getHours();
+  var minute = date.getMinutes();
+  var second = date.getSeconds();
+  param.$set['modify_date'] = year + '年' + month + '月' + day + '日 ' + hour + ':' + minute + ':' + second
   Projects.updateOne({ "pId": req.body.pId }, param, function (err, result) {
     if (err) {
       res.json({
