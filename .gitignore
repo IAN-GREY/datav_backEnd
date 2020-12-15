@@ -1,2 +1,4 @@
 node_modules/
 uploads/
+logs/
+pm2Log/
