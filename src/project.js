@@ -1,14 +1,8 @@
-/*
- * @Description: 接口
- * @Author: 沈林圩
- * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-12-10 15:54:18
- * @LastEditors: 沈林圩
- */
+
 const express = require("express");
 const router = express.Router();
 var uuid = require('node-uuid');
-const { Projects } = require('./model/model')
+const { Projects, Users } = require('./model/model')
 const auth = require('./middleware/auth')
 router.use(auth)
 /**
@@ -43,9 +37,6 @@ router.get("/get-all", function (req, res) {
   let param = {
     account: req.query.account
   }
-  if (req.query.keyword) {
-    param['name'] = { $regex: req.query.keyword }
-  }
   let sortParams = { "publish_date": 1 }
   if (req.query.orderType) {
     sortParams[req.query.orderType] = 1
@@ -55,7 +46,10 @@ router.get("/get-all", function (req, res) {
     if (err) throw err;
     if (result) {
       res.json({
-        data: result,
+        data: {
+          list: req.query.keyword ? result.filter(() => { return result.name.indexOf(req.query.keyword) !== -1 }) : result,
+          total: result.length,
+        },
         code: 200,
         msg: '查询成功'
       });
@@ -98,6 +92,7 @@ router.post("/create", function (req, res) {
     config_data: req.body.data,
     title: req.body.title,
     name: req.body.name,
+    background: req.body.background,
     background: req.body.background,
     status: 0,
     password: '',
@@ -199,5 +194,98 @@ router.post("/update", function (req, res) {
     }
   });
 });
+
+router.post("/copyScreen", function (req, res) {
+
+  const param = {
+    pId: req.query.id
+  }
+
+  Projects.findOne({ pId: req.query.id }, function (err, result) {
+    if (err) throw err;
+    if (result) {
+      const { title, config_data, name, } = result
+      const id = uuid.v1()
+      var date = new Date();
+      var year = date.getFullYear();
+      var month = date.getMonth() + 1;
+      var day = date.getDate();
+      var hour = date.getHours();
+      var minute = date.getMinutes();
+      var second = date.getSeconds();
+      const publish_date = year + '年' + month + '月' + day + '日 ' + hour + ':' + minute + ':' + second
+      const modify_date = year + '年' + month + '月' + day + '日 ' + hour + ':' + minute + ':' + second
+      const project = {
+        ...result, ...{
+          publish_date, modify_date, title, config_data, name,
+          status: '0', password: '',
+          pId: id, account: req.query.account
+        }
+      }
+
+      Users.findOne({ account: req.query.account }, function (err, user) {
+        if (err) throw err;
+        if (user) {
+
+          Projects.create(param, function (err, result) {
+            if (err) {
+              res.json({
+                code: 201,
+                msg: '添加失败'
+              });
+            };
+            if (result) {
+              res.json({
+                code: 200,
+                msg: '添加成功'
+              });
+            }
+          });
+
+        }
+      });
+    }
+  });
+
+
+  Projects.create(project, function (err, result) {
+    if (err) {
+      res.json({
+        code: 201,
+        msg: '发送失败'
+      });
+    };
+    if (result) {
+      res.json({
+        code: 200,
+        msg: '发送成功'
+      });
+    }
+  });
+  var date = new Date();
+  var year = date.getFullYear();
+  var month = date.getMonth() + 1;
+  var day = date.getDate();
+  var hour = date.getHours();
+  var minute = date.getMinutes();
+  var second = date.getSeconds();
+  param.$set['modify_date'] = year + '年' + month + '月' + day + '日 ' + hour + ':' + minute + ':' + second
+  Projects.updateOne({ "pId": req.body.pId }, param, function (err, result) {
+    if (err) {
+      res.json({
+        code: 201,
+        msg: '修改失败'
+      });
+      throw err
+    };
+    if (result) {
+      res.json({
+        code: 200,
+        msg: '修改成功'
+      });
+    }
+  });
+});
+
 module.exports = router;
 
