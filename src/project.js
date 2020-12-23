@@ -63,8 +63,15 @@ router.get("/getOne", function (req, res) {
   Projects.findOne(param, function (err, result) {
     if (err) throw err;
     if (result) {
+
       result.config_data = JSON.parse(result.config_data)
-      if (result.status == 0) {
+      if (req.query.account && req.query.account === result.account) {
+        res.json({
+          data: result,
+          code: 200,
+          msg: '查询成功'
+        });
+      } else if (result.status == 0) {
         res.json({
           code: 200,
           msg: '项目未发布'
@@ -123,7 +130,7 @@ router.post("/create", function (req, res) {
   });
 });
 router.post("/delete", function (req, res) {
-  if (!req.body.pid) {
+  if (!req.body.pId) {
     res.json({
       code: 400,
       msg: 'pId字段不能为空'
@@ -157,6 +164,9 @@ router.post("/update", function (req, res) {
   }
   if (req.body.config_data) {
     param.$set['config_data'] = req.body.config_data
+  }
+  if (req.body.bluePrint) {
+    param.$set['bluePrint'] = req.body.bluePrint
   }
   if (req.body.password) {
     param.$set['password'] = req.body.password

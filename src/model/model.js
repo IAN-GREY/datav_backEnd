@@ -2,7 +2,7 @@
  * @Description: 数据模型
  * @Author: 沈林圩
  * @Date: 2020-09-09 11:28:32
- * @LastEditTime: 2020-12-10 15:42:04
+ * @LastEditTime: 2020-12-23 09:48:56
  * @LastEditors: 沈林圩
  */
 const mongoose = require('mongoose');
@@ -41,6 +41,9 @@ const projectSchma = new mongoose.Schema({
     type: String,
   },
   config_data: {//项目数据
+    type: String,
+  },
+  bluePrint: {
     type: String,
   },
   title: {
