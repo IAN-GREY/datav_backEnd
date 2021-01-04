@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2020-12-10 15:49:22
+ * @LastEditTime: 2021-01-04 13:42:12
  * @LastEditors: 沈林圩
  */
 var express = require('express');
@@ -152,7 +152,7 @@ app.use(function (err, req, res, next) {
     next()
   }
 });
-
+process.env.host=process.env.NODE_ENV=='development'?'http://localhost:8881':'http://www.shenlinwei.com'  
 var server = app.listen(8881, function () {
   var host = server.address().address;
   var port = server.address().port;

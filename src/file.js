@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-var fs = require('fs')
+const fs = require('fs')
 const compressing = require('compressing');
 const auth = require('./middleware/auth')
 router.use(auth)
@@ -42,7 +42,6 @@ router.post("/upload", upload.single('file'), auth, function (req, res) {
   }
 });
 router.post("/batch-upload", function (req, res) {
-  console.log(11111111111111)
   var storage = multer.diskStorage({
     destination: path.join(__dirname, '/uploads')
   });

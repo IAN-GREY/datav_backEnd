@@ -27,8 +27,9 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/App.js",
-    "pm2": "pm2 start processes.json"
+    "start": "set NODE_ENV=development&& node src/App.js",
+    "pm2": "pm2 start processes.json",
+    "serve": "set NODE_ENV=production&& node src/App.js"
   },
   "author": "",
   "license": "ISC"
