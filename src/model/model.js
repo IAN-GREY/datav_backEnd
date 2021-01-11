@@ -2,12 +2,16 @@
  * @Description: 数据模型
  * @Author: 沈林圩
  * @Date: 2020-09-09 11:28:32
- * @LastEditTime: 2020-12-23 09:48:56
+ * @LastEditTime: 2021-01-11 11:13:05
  * @LastEditors: 沈林圩
  */
-const mongoose = require('mongoose');
+const mongoose = require("mongoose")
 
-mongoose.connect('mongodb://localhost:27017/local', { useUnifiedTopology: true, useNewUrlParser: true, useCreateIndex: true });
+mongoose.connect("mongodb://localhost:27017/local", {
+  useUnifiedTopology: true,
+  useNewUrlParser: true,
+  useCreateIndex: true,
+})
 
 const userSchma = new mongoose.Schema({
   account: {
@@ -33,14 +37,16 @@ const userSchma = new mongoose.Schema({
   },
   created_time: {
     type: String,
-  }
+  },
 })
 
 const projectSchma = new mongoose.Schema({
-  account: {//所属账号
+  account: {
+    //所属账号
     type: String,
   },
-  config_data: {//项目数据
+  config_data: {
+    //项目数据
     type: String,
   },
   bluePrint: {
@@ -52,25 +58,53 @@ const projectSchma = new mongoose.Schema({
   name: {
     type: String,
   },
-  status: {//项目状态 0：未发布；1：已发布；2：已发布（带密码）；
+  status: {
     type: Number,
   },
-  password: {//对于status == 2 时的访问密码
+  isPublished: {
+    type: Boolean,
+  },
+  requirePassword: {
+    //是否需要密码验证
+    type: Boolean,
+  },
+
+  useIpWhiteList: {
+    //是否ip白名单
+    type: Boolean,
+  },
+  ipWhiteList: {
+    //ip白名单
+    type: Array,
+  },
+  password: {
+    //访问密码
+
+    type: String,
+  },
+  websiteTitle: {
+    type: String,
+  },
+  websiteDescription: {
+    type: String,
+  },
+  websiteIcon: {
     type: String,
   },
   pId: {
     type: String,
-    unique: true //唯一
+    unique: true, //唯一
   },
   publish_date: {
     type: String,
   },
   modify_date: {
     type: String,
-  }
+  },
 })
 const codeSegmentSchma = new mongoose.Schema({
-  account: {//所属账号
+  account: {
+    //所属账号
     type: String,
   },
   code: {
@@ -101,8 +135,8 @@ const collectionSchma = new mongoose.Schema({
   },
 })
 
-const Users = mongoose.model('user', userSchma)
-const Collections = mongoose.model('collection', collectionSchma)
-const Projects = mongoose.model('project', projectSchma)
-const codeSegments = mongoose.model('codeSegment', codeSegmentSchma)
+const Users = mongoose.model("user", userSchma)
+const Collections = mongoose.model("collection", collectionSchma)
+const Projects = mongoose.model("project", projectSchma)
+const codeSegments = mongoose.model("codeSegment", codeSegmentSchma)
 module.exports = { Users, Collections, Projects, codeSegments }
