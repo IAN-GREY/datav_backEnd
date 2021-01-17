@@ -117,7 +117,7 @@ MongoClient.connect(url, function (err, db) {
 //设置跨域访问
 app.all('*', function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "X-Requested-With,x-access-token");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With,x-access-token,Content-Type");
   res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
   res.header("X-Powered-By", ' 3.2.1')
   // res.header("Content-Type", "application/json;charset=utf-8");
@@ -152,7 +152,7 @@ app.use(function (err, req, res, next) {
     next()
   }
 });
-process.env.host=process.env.NODE_ENV=='development'?'http://localhost:8881':'http://www.shenlinwei.com'  
+process.env.host = process.env.NODE_ENV == 'development' ? 'http://localhost:8881' : 'http://www.shenlinwei.com'
 var server = app.listen(8881, function () {
   var host = server.address().address;
   var port = server.address().port;
