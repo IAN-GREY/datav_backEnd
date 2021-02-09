@@ -2,7 +2,7 @@
  * @Description: 数据模型
  * @Author: 沈林圩
  * @Date: 2020-09-09 11:28:32
- * @LastEditTime: 2021-01-11 11:13:05
+ * @LastEditTime: 2021-02-04 16:38:50
  * @LastEditors: 沈林圩
  */
 const mongoose = require("mongoose")
@@ -135,8 +135,35 @@ const collectionSchma = new mongoose.Schema({
   },
 })
 
+const dataSourceSchma = new mongoose.Schema({
+  account: {
+    type: String,
+  },
+  type: {
+    type: String,
+  },
+  name: {
+    type: String,
+  },
+  api_url: {
+    type: String,
+  },
+  api_type: {
+    type: String,
+  },
+  api_params: {
+    type: Object,
+  },
+  api_headers: {
+    type: Object,
+  },
+  create_time: {
+    type: String,
+  },
+})
 const Users = mongoose.model("user", userSchma)
 const Collections = mongoose.model("collection", collectionSchma)
 const Projects = mongoose.model("project", projectSchma)
+const dataSources = mongoose.model("dataSource", dataSourceSchma)
 const codeSegments = mongoose.model("codeSegment", codeSegmentSchma)
-module.exports = { Users, Collections, Projects, codeSegments }
+module.exports = { Users, Collections, Projects, codeSegments, dataSources }
