@@ -2,7 +2,7 @@
  * @Description:
  * @Author: 沈林圩
  * @Date: 2020-08-24 12:48:29
- * @LastEditTime: 2021-02-04 11:09:12
+ * @LastEditTime: 2021-02-19 10:27:24
  * @LastEditors: 沈林圩
  */
 var express = require("express")
@@ -130,19 +130,14 @@ MongoClient.connect(url, function (err, db) {
 })
 
 //设置跨域访问
-<<<<<<< HEAD
 app.all("*", function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*")
-  res.header("Access-Control-Allow-Headers", "X-Requested-With,x-access-token")
+  res.header(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With,x-access-token,Content-Type"
+  )
   res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
   res.header("X-Powered-By", " 3.2.1")
-=======
-app.all('*', function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "X-Requested-With,x-access-token,Content-Type");
-  res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
-  res.header("X-Powered-By", ' 3.2.1')
->>>>>>> 29571289a0e9080b641b05a59bc722d933bf860e
   // res.header("Content-Type", "application/json;charset=utf-8");
   next()
 })
@@ -181,16 +176,11 @@ app.use(function (err, req, res, next) {
   } else {
     next()
   }
-<<<<<<< HEAD
 })
 process.env.host =
   process.env.NODE_ENV == "development"
     ? "http://localhost:8881"
     : "http://www.shenlinwei.com"
-=======
-});
-process.env.host = process.env.NODE_ENV == 'development' ? 'http://localhost:8881' : 'http://www.shenlinwei.com'
->>>>>>> 29571289a0e9080b641b05a59bc722d933bf860e
 var server = app.listen(8881, function () {
   var host = server.address().address
   var port = server.address().port

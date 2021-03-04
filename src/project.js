@@ -125,6 +125,7 @@ router.post("/create", function (req, res) {
     websiteTitle: "Datav",
     websiteIcon: "",
     websiteDescription: "这是一条测试描述",
+    typeId: req.body.typeId,
   }
 
   var date = new Date()

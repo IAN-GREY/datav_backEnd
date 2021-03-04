@@ -2,7 +2,7 @@
  * @Description: 数据模型
  * @Author: 沈林圩
  * @Date: 2020-09-09 11:28:32
- * @LastEditTime: 2021-02-04 16:38:50
+ * @LastEditTime: 2021-03-03 16:18:08
  * @LastEditors: 沈林圩
  */
 const mongoose = require("mongoose")
@@ -37,6 +37,10 @@ const userSchma = new mongoose.Schema({
   },
   created_time: {
     type: String,
+  },
+
+  groupNames: {
+    type: Array,
   },
 })
 
@@ -99,6 +103,10 @@ const projectSchma = new mongoose.Schema({
     type: String,
   },
   modify_date: {
+    type: String,
+  },
+
+  typeId: {
     type: String,
   },
 })
